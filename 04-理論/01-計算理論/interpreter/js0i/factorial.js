@@ -1,0 +1,8 @@
+function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1);
+}
+
+console.log('factorial(10) =', factorial(10));
+console.log('factorial(5) =', factorial(5));
+console.log('factorial(0) =', factorial(0));
