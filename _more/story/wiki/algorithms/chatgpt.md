@@ -1,0 +1,17 @@
+# ChatGPT 世代：5 天破百萬的 AI 軍備競賽
+
+**領域**：[數理邏輯與電腦史](../categories/history.md) | **年代**：2022 | **相關**：[機器學習](../concepts/machine-learning.md)
+
+---
+
+**趣味點**：OpenAI 把基於 Transformer 的大模型加上 RLHF（人類反饋強化學習）包裝成聊天框，原本只是想做個小範圍測試，結果短短 5 天破百萬用戶，直接把全球科技巨頭嚇到全部進入「AI 軍備競賽」狀態。
+
+2022 年 11 月，OpenAI 發布了 **ChatGPT**——本質上只是把大型語言模型（LLM）與「人類反饋強化學習」（RLHF）包裝成一個對話框。
+
+當時 OpenAI 內部完全沒預料到它會爆紅。結果它**五天內突破百萬用戶**——這個速度甚至破了過去所有 App 的紀錄（在此之前，Instagram 花了兩個半月才達到百萬）。
+
+ChatGPT 的出現，讓「AI」從研究圈的專業術語變成全民話題，也讓 Google、Meta、微軟等科技巨頭瞬間進入「AI 軍備競賽」：《Transformer》架構、「生成式 AI」這些詞開始攻占全世界的新聞頭條。
+
+從 1956 年[達特茅斯會議](dartmouth-ai.md)喊出「一個夏天搞定 AI」的豪語，到 2022 年 AI 真正走進尋常百姓——中間隔了近 70 年。
+
+**延伸閱讀**：[達特茅斯會議與 AI 一詞](dartmouth-ai.md)、[感知機](perceptron.md)、[CNN](cnn.md)、[SGD](sgd.md)
