@@ -1,0 +1,8 @@
+[package]
+name = "inodefs"
+version = "0.1.0"
+edition = "2021"
+description = "Virtual file system based on UNIX inode structure"
+license = "MIT"
+
+[dependencies]

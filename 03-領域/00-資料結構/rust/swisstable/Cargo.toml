@@ -1,0 +1,32 @@
+[package]
+name = "swisstable"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A Rust implementation of the Swiss Table hash table algorithm"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/swisstable"
+documentation = "https://docs.rs/swisstable"
+readme = "README.md"
+keywords = ["hash", "table", "swiss", "map", "set"]
+categories = ["data-structures", "no-std"]
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+
+[dev-dependencies]
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"
+
+[[example]]
+name = "word_count"
+path = "examples/word_count.rs"
+
+[[example]]
+name = "phonebook"
+path = "examples/phonebook.rs"
