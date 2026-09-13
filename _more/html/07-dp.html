@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07 動態規劃法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip on" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>07 動態規劃法 <span class="sub">把重複的子問題記下來，從底部把答案堆起來</span></h1>
+<p class="lead">動態規劃 (DP) 專治「重疊子問題」：同樣的子問題一直被重算（像費氏數列的 fib(3) 被算好幾次）。
+  解法是<b>從最小子問題開始，把答案一格一格填進表格</b>，大的答案由小的堆疊出來。</p>
+
+<h2>07.1 兩個必要條件</h2>
+<ul>
+  <li><b>最佳子結構 (optimal substructure)</b>：全域最佳解一定由子問題的最佳解組成。</li>
+  <li><b>重疊子問題 (overlapping subproblems)</b>：子問題被重複用到——才有記下來省錢的空間。</li>
+</ul>
+<p>做法分成兩種：由上而下 + 記憶化 (memoization)，或由下而上 + 填表 (tabulation)。底下都用「填表」示範。</p>
+
+<h2>07.2 費氏數列：從 Θ(2ⁿ) 變成 Θ(n)</h2>
+<p>如果只存前兩個值，<code>F(k)=F(k−1)+F(k−2)</code> 可以一路滾上去。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">費氏 · 填表動畫</span><span class="d">一格一格填入 F(0)…F(n)</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>n <input id="c7-fn" type="range" min="2" max="20" value="12"> <span id="c7-fn-v">12</span></label>
+      <button class="btn primary" id="c7-frun">重新執行</button>
+    </div>
+    <div id="c7-frow" class="arr" style="font-size:15px"></div>
+    <div id="c7-fstatus" class="statusline"></div>
+    <div id="c7-fplayer"></div>
+    <canvas id="c7-fbars" style="height:110px" class="demo-canvas"></canvas>
+    <p class="small">左 = 純遞迴的呼叫數（指數），右 = DP 只需「每格填一次」（線性）。</p>
+  </div>
+</div>
+
+<h2>07.3 0/1 背包：容量限制下的最大價值</h2>
+<p>有 n 個物品，每個只能拿或不拿一次（0/1），且總重量不能超過容量 W。定義</p>
+<pre><code>dp[i][w] = 只用前 i 個物品、容量 w 時能拿到的最大價值
+dp[i][w] = max( dp[i-1][w],            # 不拿第 i 個
+                dp[i-1][w - wi] + vi)   # 拿第 i 個（若 w ≥ wi）</code></pre>
+<p>格子填完後，從右下角<b>沿著「改變」的路徑回溯</b>，就知道該拿哪幾樣。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">0/1 背包 · 填表動畫與回溯</span><span class="d">綠格 = 回溯選取的物品路徑</span></div>
+  <div class="bd">
+    <div class="controls" style="align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:4px" id="c7-kitems"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label>容量 W <input id="c7-kw" type="range" min="1" max="14" value="9"> <span id="c7-kw-v">9</span></label>
+        <button class="btn primary" id="c7-krun">執行 DP</button>
+      </div>
+    </div>
+    <div style="overflow:auto"><table class="dp" id="c7-ktable"></table></div>
+    <div id="c7-kstatus" class="statusline"></div>
+    <div id="c7-kplayer"></div>
+    <h3>DP 最佳解 vs 貪婪解</h3>
+    <canvas id="c7-kbars" style="height:140px" class="demo-canvas"></canvas>
+    <p class="small">貪婪依據「價值/重量」由大到小挑——常常很快，但<b>不保證最佳</b>。DP 一定最佳（這裡會看到差距）。</p>
+  </div>
+</div>
+
+<h2>07.4 編輯距離：字串要多改幾次才一樣？</h2>
+<p>把字串 a 變成 b，允許的一系列操作：插入、刪除、取代各算 1 分，最少多少分？
+  <code>dp[i][j]</code> = 把 a 的前 j 字元變成 b 的前 i 字元所需的最少操作數。</p>
+<pre><code>若 a[j-1] == b[i-1]：dp[i][j] = dp[i-1][j-1]          （不用改）
+否則：              dp[i][j] = 1 + min( dp[i-1][j-1],  # 取代
+                                         dp[i][j-1],     # 插入
+                                         dp[i-1][j]  )   # 刪除</code></pre>
+
+<div class="card">
+  <div class="hd"><span class="t">編輯距離 · 填表與對齊</span><span class="d">綠徑 = 回溯出的最佳操作路徑</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>來源 a <input id="c7-ea" type="text" value="kitten" maxlength="7"></label>
+      <label>目標 b <input id="c7-eb" type="text" value="sitting" maxlength="7"></label>
+      <button class="btn primary" id="c7-erun">執行</button>
+    </div>
+    <div style="overflow:auto"><table class="dp" id="c7-etable"></table></div>
+    <div id="c7-estatus" class="statusline"></div>
+    <div id="c7-eplayer"></div>
+    <pre id="c7-ealign" style="font-size:14px"></pre>
+  </div>
+</div>
+
+<div class="note">
+  <div class="kicker">DP 的思考順序</div>
+  1) 定義「狀態」dp[…]；2) 寫出遞迴關係；3) 訂好初始值；4) 決定填表順序；5) 需要時做「回溯」取回方案。
+</div>
+
+<div class="pagenav">
+  <a href="06-divide.html">← 06 分割擊破法</a>
+  <a href="08-greedy.html">08 貪婪法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 07 動態規劃法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, el = AG.el, fmt = AG.fmt;
+
+  /* ===== 07.2 費氏 ===== */
+  const fn = $('#c7-fn'), fnV = $('#c7-fn-v'), fRun = $('#c7-frun');
+  const frow = $('#c7-frow'), fSt = $('#c7-fstatus'), fBars = $('#c7-fbars');
+  const fPlayer = new AG.Player({ render: fr => drawFibTable(fr), speed: 520 });
+  function fibDPFrames(n) {
+    const F = [0, 1], frames = [];
+    frames.push({ F: F.slice(), cur: 0, msg: '初始：F(0)=0, F(1)=1' });
+    for (let k = 2; k <= n; k++) {
+      F[k] = F[k - 1] + F[k - 2];
+      frames.push({ F: F.slice(), cur: k, msg: `F(${k}) = F(${k - 1}) + F(${k - 2}) = ${F[k - 1]} + ${F[k - 2]} = ${F[k]}` });
+    }
+    return frames;
+  }
+  function fibCalls(n) { const m = { 0: 1, 1: 1 }; const t = k => { if (m[k] != null) return m[k]; m[k] = t(k - 1) + t(k - 2) + 1; return m[k]; }; return t(n); }
+  function drawFibTable(fr) {
+    frow.innerHTML = '';
+    fr.F.forEach((v, k) => {
+      frow.append(el('span', { class: k === fr.cur ? 'cur' : '', style: k === fr.cur ? 'border:2px solid #d97706;font-weight:700;background:#fef3c7' : '' }, `F(${k})=${v}`));
+    });
+    fSt.innerHTML = fr.msg;
+    AG.bars(fBars, [fibCalls(nn()), Math.max(0, nn() - 1)], { colors: ['#dc2626', '#0d9488'], labels: ['遞迴呼叫', 'DP 填表'], value: true, logY: true });
+  }
+  function nn() { return +fn.value; }
+  function setupFib() {
+    fnV.textContent = nn();
+    fPlayer.setFrames(fibDPFrames(nn()));
+    if (!fPlayer.boxEl.isConnected) $('#c7-fplayer').append(fPlayer.boxEl);
+  }
+  fn.addEventListener('input', () => fnV.textContent = nn());
+  fRun.addEventListener('click', setupFib);
+  setupFib();
+
+  /* ===== 07.3 0/1 背包 ===== */
+  const DEF_ITEMS = [
+    { name: 'A', w: 2, v: 3 }, { name: 'B', w: 3, v: 4 },
+    { name: 'C', w: 4, v: 5 }, { name: 'D', w: 5, v: 8 }
+  ];
+  const kw = $('#c7-kw'), kwV = $('#c7-kw-v'), kRun = $('#c7-krun');
+  const ktable = $('#c7-ktable'), kSt = $('#c7-kstatus'), kBars = $('#c7-kbars');
+  const kItemsEl = $('#c7-kitems');
+  const kPlayer = new AG.Player({ render: fr => drawKnap(fr), speed: 180 });
+
+  const kInputs = [];
+  function buildItemInputs() {
+    kItemsEl.innerHTML = '';
+    kInputs.length = 0;
+    DEF_ITEMS.forEach((it, i) => {
+      const wrap = el('div', { style: 'display:flex;align-items:center;gap:6px;font-size:13px' });
+      const wIn = el('input', { type: 'number', min: 1, max: 14, value: it.w, style: 'width:56px' });
+      const vIn = el('input', { type: 'number', min: 1, max: 30, value: it.v, style: 'width:56px' });
+      kInputs.push({ w: wIn, v: vIn });
+      wrap.appendChild(el('b', {}, it.name));
+      wrap.append(el('span', { class: 'small' }, '重')), wrap.append(wIn);
+      wrap.append(el('span', { class: 'small' }, '價')), wrap.append(vIn);
+      kItemsEl.appendChild(wrap);
+    });
+  }
+  function items() {
+    return DEF_ITEMS.map((it, i) => ({
+      name: it.name,
+      w: Math.max(1, kInputs[i].w.value | 0),
+      v: Math.max(1, kInputs[i].v.value | 0)
+    }));
+  }
+  let lastKnap = null;
+  function knapFrames() {
+    const its = items(), W = +kw.value, n = its.length;
+    const dp = [];
+    for (let i = 0; i <= n; i++) { dp.push(new Array(W + 1).fill(0)); }
+    const frames = [];
+    frames.push({ dp: dp.map(r => r.slice()), cur: null, msg: `初始化 dp[0][*] = 0（沒有物品）` });
+    for (let i = 1; i <= n; i++) {
+      const it = its[i - 1];
+      for (let w = 1; w <= W; w++) {
+        let msg;
+        if (w < it.w) { dp[i][w] = dp[i - 1][w]; msg = `容量 ${w} < 物品 ${it.name} 重量 ${it.w}，不能拿 → dp[${i}][${w}] = dp[${i - 1}][${w}] = ${dp[i][w]}`; }
+        else {
+          const no = dp[i - 1][w], yes = dp[i - 1][w - it.w] + it.v;
+          dp[i][w] = Math.max(no, yes);
+          msg = `dp[${i}][${w}] = max(不拿 ${no}，拿 ${it.name} → ${dp[i - 1][w - it.w]} + ${it.v} = ${yes}) = ${dp[i][w]}`;
+        }
+        frames.push({ dp: dp.map(r => r.slice()), cur: [i, w], msg });
+      }
+    }
+    // 回溯：從 dp[n][W] 回頭找「有改變」的格子
+    const pick = [];
+    const pathCells = new Set();
+    let i = n, w = W;
+    while (i > 0 && w > 0) {
+      const it = its[i - 1];
+      if (w >= it.w && dp[i][w] === dp[i - 1][w - it.w] + it.v) {
+        pick.push(it.name); pathCells.add(i + ',' + w);
+        frames.push({ dp: dp.map(r => r.slice()), pathCells: new Set(pathCells), msg: `回溯：${it.name} 改變了 dp[${i}][${w}] → 拿它（價值 ${it.v}），跳到 dp[${i - 1}][${w - it.w}]`, pickNow: [...pick] });
+        w -= it.w; i--;
+      } else {
+        frames.push({ dp: dp.map(r => r.slice()), pathCells: new Set(pathCells), msg: `回溯：${it.name} 沒改變 dp[${i}][${w}] → 不拿它`, pickNow: [...pick] });
+        i--;
+      }
+    }
+    lastKnap = { opt: dp[n][W], pick, dp };
+    frames.push({ dp: dp.map(r => r.slice()), pathCells: new Set(pathCells), final: true, msg: `✔ 最佳總價值 = ${dp[n][W]}，選的物品：${[...pick].join('、') || '（無）'}` });
+    return frames;
+  }
+  function drawKnap(fr) {
+    const its = items(), W = +kw.value, n = its.length;
+    let html = '<tr><th>i＼w</th>' + Array.from({ length: W + 1 }, (_, w) => `<th>${w}</th>`).join('') + '</tr>';
+    for (let i = 0; i <= n; i++) {
+      let row = `<tr><th>${i === 0 ? '0' : its[i - 1].name + `〔${its[i - 1].w}W·${its[i - 1].v}V〕`}</th>`;
+      for (let w = 0; w <= W; w++) {
+        let cls = '';
+        if (fr.cur && fr.cur[0] === i && fr.cur[1] === w) cls = 'cur';
+        else if (fr.pathCells && fr.pathCells.has(i + ',' + w)) cls = 'path';
+        const val = fr.dp[i][w];
+        row += `<td class="${cls}">${val}</td>`;
+      }
+      html += row + '</tr>';
+    }
+    ktable.innerHTML = html;
+    kSt.innerHTML = fr.msg;
+    drawKnapBars();
+  }
+  function knapGreedy() {
+    const its = items(), W = +kw.value;
+    const sorted = [...its].map(it => ({ ...it, d: it.v / it.w })).sort((a, b) => b.d - a.d);
+    let wsum = 0, vsum = 0;
+    for (const it of sorted) { if (wsum + it.w <= W) { wsum += it.w; vsum += it.v; } }
+    return vsum;
+  }
+  function drawKnapBars() {
+    if (!lastKnap) return;
+    AG.bars(kBars, [lastKnap.opt, knapGreedy()], { colors: ['#0d9488', '#d97706'], labels: ['DP 最佳', '貪婪解'], value: true });
+  }
+  function setupKnap() {
+    kwV.textContent = +kw.value;
+    kPlayer.setFrames(knapFrames());
+    if (!kPlayer.boxEl.isConnected) $('#c7-kplayer').append(kPlayer.boxEl);
+  }
+  kw.addEventListener('input', () => kwV.textContent = kw.value);
+  kRun.addEventListener('click', setupKnap);
+  buildItemInputs();
+  setupKnap();
+
+  /* ===== 07.4 編輯距離 ===== */
+  const ea = $('#c7-ea'), eb = $('#c7-eb'), eRun = $('#c7-erun');
+  const etable = $('#c7-etable'), eSt = $('#c7-estatus'), eAlign = $('#c7-ealign');
+  const ePlayer = new AG.Player({ render: fr => drawEdit(fr), speed: 130 });
+
+  function editFrames(a, b) {
+    const m = b.length, n = a.length;
+    const dp = []; for (let i = 0; i <= m; i++) dp.push(new Array(n + 1).fill(0));
+    const frames = [];
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    frames.push({ dp: dp.map(r => r.slice()), cur: null, msg: '初始：刪光 i 字元、插入 j 字元' });
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+      if (b[i - 1] === a[j - 1]) { dp[i][j] = dp[i - 1][j - 1]; frames.push({ dp: dp.map(r => r.slice()), cur: [i, j], msg: `b[${i - 1}]=${b[i - 1]} == a[${j - 1}]：不需操作 → dp=${dp[i][j]}` }); }
+      else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j]);
+        frames.push({ dp: dp.map(r => r.slice()), cur: [i, j], msg: `取代=${dp[i - 1][j - 1] + 1} 插入=${dp[i][j - 1] + 1} 刪除=${dp[i - 1][j] + 1} → dp=${dp[i][j]}` });
+      }
+    }
+    // 回溯：從右下角往左上一格一格走
+    const pathCells = new Set();
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+      pathCells.add(i + ',' + j);
+      if (b[i - 1] === a[j - 1] || dp[i][j] === dp[i - 1][j - 1] + 1) { i--; j--; }
+      else if (dp[i][j] === dp[i][j - 1] + 1) { j--; }
+      else { i--; }
+    }
+    pathCells.add(i + ',' + j);
+    let bx = '', ax = ''; i = m; j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && b[i - 1] === a[j - 1]) { bx = b[i - 1] + bx; ax = a[j - 1] + ax; i--; j--; }
+      else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) { bx = b[i - 1] + bx; ax = ' ' + ax; i--; }
+      else if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) { ax = a[j - 1] + ax; bx = ' ' + bx; j--; }
+      else if (i > 0 && j > 0) { bx = b[i - 1] + bx; ax = a[j - 1] + ax; i--; j--; }
+      else if (i > 0) { bx = b[i - 1] + bx; ax = ' ' + ax; i--; }
+      else { ax = a[j - 1] + ax; bx = ' ' + bx; j--; }
+    }
+    frames.push({ dp: dp.map(r => r.slice()), pathCells, final: true, msg: `最少編輯次數 = ${dp[m][n]}　（b → a）`, align: [bx.trim(), ax.trim()] });
+    return frames;
+  }
+  function drawEdit(fr) {
+    const a = ea.value, b = eb.value, m = b.length, n = a.length;
+    let head = '<tr><th></th>';
+    for (let j = 0; j <= n; j++) head += `<th>${j === 0 ? 'ε' : a[j - 1]}</th>`;
+    head += '</tr>';
+    let html = head;
+    for (let i = 0; i <= m; i++) {
+      html += `<tr><th>${i === 0 ? 'ε' : b[i - 1]}</th>`;
+      for (let j = 0; j <= n; j++) {
+        let cls = '';
+        if (fr.cur && fr.cur[0] === i && fr.cur[1] === j) cls = 'cur';
+        else if (fr.pathCells && fr.pathCells.has(i + ',' + j)) cls = 'path';
+        else if ((i === 0 || j === 0) && !fr.final) cls = 'dim';
+        html += `<td class="${cls}">${fr.dp[i][j]}</td>`;
+      }
+      html += '</tr>';
+    }
+    etable.innerHTML = html;
+    eSt.innerHTML = fr.msg;
+    if (fr.align) { eAlign.textContent = `bx = ${fr.align[0]}\nax = ${fr.align[1]}（空格 = 插入/刪除的位置）`; }
+    else eAlign.textContent = '';
+  }
+  function setupEdit() {
+    const a = ea.value.trim(), b = eb.value.trim();
+    ePlayer.setFrames(editFrames(a, b));
+    if (!ePlayer.boxEl.isConnected) $('#c7-eplayer').append(ePlayer.boxEl);
+  }
+  eRun.addEventListener('click', setupEdit);
+  setupEdit();
+})();
+</script>
+</body>
+</html>

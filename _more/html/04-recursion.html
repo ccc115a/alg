@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 遞迴法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip on" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>04 遞迴法 <span class="sub">函數呼叫自己，把大問題拆成同樣結構的小問題</span></h1>
+<p class="lead">遞迴是演算法最重要的思考方式：<b>假設「小一號的版本」已經會解決，那大問題只要一步就能變成小問題</b>。
+  每個遞迴函數都必須有「基底情況」(base case)，否則永遠停不下來。</p>
+
+<h2>04.1 遞迴的骨架</h2>
+<pre><code>def solve(n):
+    if n 是基底情況:          # 1. 基底
+        return 答案
+    return 把 solve(n-1) 加工  # 2. 自我呼叫 3. 組合出答案</code></pre>
+<p>例：費氏數列 <code>F(n)=F(n−1)+F(n−2)</code>，河內塔、二元搜尋、Merge Sort 全都是這個骨架。</p>
+
+<h2>04.2 費氏數列：呼叫樹</h2>
+<p>看 <code>fib(5)</code> 的呼叫樹：<code>fib(3)</code>、<code>fib(2)</code> 被重複算了許多次——這就是「重疊子問題」，也是第 07 章動態規劃要解的痛點。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">遞迴呼叫樹</span><span class="d">播放器會以「呼叫順序」逐個標亮節點</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>n <input id="c4-fn" type="range" min="2" max="10" value="6"> <span id="c4-fn-v">6</span></label>
+      <button class="btn primary" id="c4-frun">重新產生</button>
+      <span class="small">呼叫總數 <b id="c4-callcnt">25</b></span>
+    </div>
+    <canvas id="c4-tree" style="height:340px" class="demo-canvas"></canvas>
+    <div id="c4-tstatus" class="statusline"></div>
+    <div id="c4-tplayer"></div>
+    <div class="legend">
+      <span><i style="background:#0b5cad"></i>已呼叫</span>
+      <span><i style="background:#d97706"></i>正在執行</span>
+      <span><i style="background:#eef1f6"></i>尚未呼叫</span>
+    </div>
+    <h3>呼叫次數的差別</h3>
+    <canvas id="c4-cbars" style="height:120px" class="demo-canvas"></canvas>
+    <p class="small">普通遞迴每個子問題重算一遍；<b>記憶化 (memoization)</b> 每個 fib(k) 只算一次 → 呼叫數從指數變「n 減 1 次」。</p>
+  </div>
+</div>
+
+<h2>04.3 呼叫堆疊：一次只看一個「進行中」的呼叫</h2>
+<p>執行程式時，每呼叫一次就壓入一個「執行幀」(frame)，傳回後彈出。以 <code>power(2,3)=2·power(2,2)=…</code> 為例：</p>
+
+<div class="card">
+  <div class="hd"><span class="t">堆疊擴張與彈出</span><span class="d">power(x,n)=x·power(x,n−1)</span></div>
+  <div class="bd">
+    <div class="controls"><button class="btn primary" id="c4-srun">開始</button></div>
+    <div id="c4-stack" style="display:flex;flex-direction:column;gap:5px;min-height:120px"></div>
+    <div id="c4-sstatus" class="statusline"></div>
+    <div id="c4-splayer"></div>
+  </div>
+</div>
+
+<h2>04.4 河內塔：2ⁿ−1 步</h2>
+<p>把 n 個盤子從 A 移到 C，一次只搬一片，且大盤永遠不能壓在小盤上。
+  遞迴解：先搬 n−1 片到暫存柱 → 搬最大的到目標柱 → 再把 n−1 片搬上去。</p>
+<pre><code>def hanoi(n, A, B, C):            # 把 n 片 從 A 經由 B 搬到 C
+    if n == 0: return
+    hanoi(n-1, A, C, B)           # 1. 小盤全部去 B
+    move(n, A, C)                 # 2. 最大的直接到 C
+    hanoi(n-1, B, A, C)           # 3. 小盤再疊回 C</code></pre>
+
+<div class="card">
+  <div class="hd"><span class="t">河內塔動畫</span><span class="d">總步數 = 2ⁿ − 1</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>盤數 n <input id="c4-hn" type="range" min="2" max="7" value="4"> <span id="c4-hn-v">4</span></label>
+      <button class="btn primary" id="c4-hrun">重新開始</button>
+      <span class="small">最少步數 <b id="c4-hsteps">15</b></span>
+    </div>
+    <canvas id="c4-hanoi" style="height:260px" class="demo-canvas"></canvas>
+    <div id="c4-hstatus" class="statusline"></div>
+    <div id="c4-hplayer"></div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="kicker">複雜度</div>
+  <code>time(hanoi(n)) = 2·time(hanoi(n−1)) + 1 = Θ(2ⁿ)</code> — 但 n 只有幾十片時，最少步數本身就必須是這個量級。
+  遞迴真正的威力不在少算步數，而在「把寫程式變簡單」。
+</div>
+
+<div class="pagenav">
+  <a href="03-iteration.html">← 03 迭代法</a>
+  <a href="05-search.html">05 搜尋法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 04 遞迴法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, el = AG.el, fmt = AG.fmt;
+
+  /* ---- 04.2 費氏呼叫樹 ---- */
+  const fn = $('#c4-fn'), fnV = $('#c4-fn-v'), fRun = $('#c4-frun');
+  const treeCv = $('#c4-tree'), tSt = $('#c4-tstatus'), callCnt = $('#c4-callcnt');
+  const cbCv = $('#c4-cbars');
+  const fPlayer = new AG.Player({ render: drawFib, speed: 300 });
+
+  function buildTree(k) {
+    if (k < 2) return { k, ch: [] };
+    return { k, ch: [buildTree(k - 1), buildTree(k - 2)] };
+  }
+  function layoutTree(t) {
+    const nodes = [];
+    let leafX = 0;
+    (function walk(node, d) {
+      node.d = d;
+      if (node.ch.length) {
+        walk(node.ch[0], d + 1);
+        walk(node.ch[1], d + 1);
+        node.x = (node.ch[0].x + node.ch[1].x) / 2;
+      } else { node.x = leafX++; }
+      nodes.push(node);
+    })(t, 0);
+    const pre = [];
+    (function preorder(node) { pre.push(node); node.ch.forEach(preorder); })(t);
+    return { nodes, pre, maxDepth: Math.max(...nodes.map(n => n.d)) };
+  }
+  function totalCalls(k) { // T(k)=T(n-1)+T(n-2)+1 ；基底為 1 次呼叫
+    const mem = {};
+    function t(m) { if (m in mem) return mem[m]; if (m < 2) mem[m] = 1; else mem[m] = t(m - 1) + t(m - 2) + 1; return mem[m]; }
+    return t(k);
+  }
+  function drawFib(step) {
+    const n = +fn.value;
+    const root = buildTree(n), { nodes, pre, maxDepth } = layoutTree(root);
+    const ctx = treeCv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = treeCv.clientWidth || 640, H = treeCv.clientHeight || 320;
+    treeCv.width = W * dpr; treeCv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const leafN = nodes.filter(n => !n.ch.length).length;
+    const mapX = x => 12 + (x / (leafN - 1 || 1)) * (W - 24);
+    const mapY = d => 26 + d / (maxDepth || 1) * (H - 60);
+    const R = Math.max(10, Math.min(17, (W - 24) / leafN / 2.1));
+    nodes.forEach(n => {
+      ctx.beginPath(); ctx.arc(mapX(n.x), mapY(n.d), R, 0, 7);
+      ctx.fillStyle = '#eef1f6'; ctx.strokeStyle = '#cbd5e1'; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#334155'; ctx.font = `${Math.max(8.5, R * .72)}px ui-monospace,monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('f' + n.k, mapX(n.x), mapY(n.d) + 1);
+    });
+    // 連線
+    ctx.lineWidth = 1;
+    nodes.forEach(n => {
+      if (!n.ch.length) return;
+      for (const c of n.ch) {
+        ctx.beginPath(); ctx.moveTo(mapX(n.x), mapY(n.d) + R); ctx.lineTo(mapX(c.x), mapY(c.d) - R);
+        ctx.strokeStyle = '#94a3b8'; ctx.stroke();
+      }
+    });
+    // 已呼叫：pre[0..stepIdx]
+    const done = pre.slice(0, step.i);
+    const cur = pre[step.i];
+    done.forEach(n => { ctx.beginPath(); ctx.arc(mapX(n.x), mapY(n.d), R, 0, 7); ctx.fillStyle = 'rgba(11,92,173,.75)'; ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText('f' + n.k, mapX(n.x), mapY(n.d) + 1); });
+    if (cur) { ctx.beginPath(); ctx.arc(mapX(cur.x), mapY(cur.d), R, 0, 7); ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = '#f59e0b'; ctx.font = `bold ${Math.max(9, R)}px ui-monospace,monospace`; ctx.fillText('f' + cur.k, mapX(cur.x), mapY(cur.d) + 1); }
+    tSt.innerHTML = cur
+      ? `第 ${step.i + 1} 個呼叫：<b>fib(${cur.k})</b>　（共 ${pre.length} 次呼叫）`
+      : '';
+  }
+  function setupFib() {
+    const n = Math.max(2, fn.value | 0); fnV.textContent = n;
+    const root = buildTree(n), { pre } = layoutTree(root);
+    const frames = pre.map((nd, i) => ({ i, n }));
+    fPlayer.setFrames(frames);
+    if (!fPlayer.boxEl.isConnected) $('#c4-tplayer').append(fPlayer.boxEl);
+    callCnt.textContent = totalCalls(n);
+    // 計數條
+    const memoCalls = Math.max(0, n - 1);
+    AG.bars(cbCv, [totalCalls(n), memoCalls], { colors: ['#dc2626', '#0d9488'], labels: ['普通遞迴', '記憶化'], value: true, logY: true });
+  }
+  fn.addEventListener('input', () => fnV.textContent = fn.value);
+  fRun.addEventListener('click', setupFib);
+  setupFib();
+
+  /* ---- 04.3 呼叫堆疊 ---- */
+  const sRun = $('#c4-srun'), stackEl = $('#c4-stack'), sSt = $('#c4-sstatus');
+  const sPlayer = new AG.Player({ render: drawStack, speed: 700 });
+  function stackFrames() {
+    const frames = [];
+    const log = (type, func, result) => frames.push({ type, func, result });
+    function power(x, n) {
+      log('call', `power(${x},${n})`);
+      if (n === 0) { log('ret', `power(${x},0) → 1`, 1); return 1; }
+      const r = x * power(x, n - 1);
+      log('ret', `power(${x},${n}) → ${x}×${r}`, r);
+      return r;
+    }
+    power(2, 3);
+    return frames;
+  }
+  function drawStack(frame) {
+    // 重建 stacks
+    const stack = [];
+    for (let i = 0; i < frame.frames.length; i++) {
+      const f = frame.frames[i];
+      if (f.type === 'call') stack.push(f.func);
+      else stack.pop();
+      if (i === frame.i) break;
+    }
+    stackEl.innerHTML = '';
+    [...stack].reverse().forEach((s, idx) => stackEl.append(el('div', { style: 'border:1px solid #7baaf0;background:#dbeafe;border-radius:8px;padding:7px 12px;font:13px ui-monospace,monospace;' }, `↳ ${s}`)));
+    if (!stack.length) stackEl.append(el('div', { class: 'small' }, '（堆疊已清空）'));
+    const f = frame.frames[frame.i];
+    sSt.innerHTML = f.type === 'call'
+      ? `呼叫 → 壓入：<b>${f.func}</b>` + (f.func.endsWith('0)') ? '（基底情況，立即回傳）' : '　等它算完再乘 x')
+      : `回傳 ← 彈出：<b>${f.func}</b>　回傳值 = <b>${f.result}</b>`;
+  }
+  sRun.addEventListener('click', () => {
+    sPlayer.setFrames(stackFrames());
+    if (!sPlayer.boxEl.isConnected) $('#c4-splayer').append(sPlayer.boxEl);
+  });
+  sRun.click();
+
+  /* ---- 04.4 河內塔 ---- */
+  const hn = $('#c4-hn'), hnV = $('#c4-hn-v'), hRun = $('#c4-hrun');
+  const hCv = $('#c4-hanoi'), hSt = $('#c4-hstatus'), hSteps = $('#c4-hsteps');
+  const hPlayer = new AG.Player({ render: drawHanoi, speed: 520 });
+  function hanoiMoves(n) {
+    const moves = [];
+    (function rec(k, A, B, C) {
+      if (k === 0) return;
+      rec(k - 1, A, C, B);
+      moves.push({ disk: k, from: A, to: C });
+      rec(k - 1, B, A, C);
+    })(n, 0, 1, 2);
+    return moves;
+  }
+  function drawHanoi(step) {
+    if (!step) return;
+    const n = Math.max(2, hn.value | 0);
+    const moves = hanoiMoves(n);
+    const pegs = [[], [], []];
+    for (let i = n; i >= 1; i--) pegs[0].push(i);
+    for (let i = 0; i < Math.min(step.i + 1, moves.length); i++) {
+      const m = moves[i];
+      pegs[m.to].push(pegs[m.from].pop());
+    }
+    const ctx = hCv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = hCv.clientWidth || 640, H = hCv.clientHeight || 250;
+    hCv.width = W * dpr; hCv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const baseY = H - 24, poleH = H - 56, pegX = [W / 6, W / 2, W * 5 / 6];
+    const maxW = Math.min(120, W / 6);
+    ctx.strokeStyle = '#8a94a5'; ctx.lineWidth = 3;
+    for (const px of pegX) { ctx.beginPath(); ctx.moveTo(px, baseY); ctx.lineTo(px, H - 28 - poleH); ctx.stroke(); }
+    ctx.strokeStyle = '#8a94a5'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(15, baseY); ctx.lineTo(W - 15, baseY); ctx.stroke();
+    pegs.forEach((peg, pi) => {
+      peg.forEach((disk, di) => {
+        const w = maxW * (0.35 + 0.65 * (disk / n));
+        const x = pegX[pi] - w / 2, y = baseY - (di + 1) * 16;
+        ctx.fillStyle = ['#ef8f8f', '#8ab4f8', '#7dd3a8'][disk % 3];
+        ctx.fillRect(x, y, w, 15);
+        ctx.strokeStyle = '#5b6472'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, 15);
+        ctx.fillStyle = '#334155'; ctx.font = '10px ui-monospace,monospace'; ctx.textAlign = 'center';
+        ctx.fillText(String(disk), pegX[pi], y + 12);
+      });
+    });
+    const done = Math.min(step.i + 1, moves.length);
+    const m = done > 0 ? moves[done - 1] : null;
+    const names = ['A', 'B', 'C'];
+    hSt.innerHTML = moveText(m, names, done, moves.length, n);
+  }
+  function moveText(m, names, done, total, n) {
+    if (!m) return `準備開始：${n} 片全部在 A 柱，目標是搬去 C。`;
+    return `第 ${done}/${total} 步：搬「${m.disk} 號盤」從 ${names[m.from]} 到 ${names[m.to]}` + (done === total ? '　✔ 完成！' : '');
+  }
+  function setupHanoi() {
+    const n = Math.max(2, hn.value | 0); hnV.textContent = n;
+    hSteps.textContent = Math.pow(2, n) - 1;
+    const moves = hanoiMoves(n);
+    const frames = moves.map((m, i) => ({ i }));
+    hPlayer.setFrames(frames);
+    if (!hPlayer.boxEl.isConnected) $('#c4-hplayer').append(hPlayer.boxEl);
+  }
+  hn.addEventListener('input', () => hnV.textContent = hn.value);
+  hRun.addEventListener('click', setupHanoi);
+  setupHanoi();
+})();
+</script>
+</body>
+</html>

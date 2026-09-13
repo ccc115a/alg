@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 分割擊破法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip on" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>06 分割擊破法 <span class="sub">Divide &amp; Conquer：拆小、解決、合併</span></h1>
+<p class="lead">把大問題<b>切成幾個同類型的小問題</b>，全部解決後再把結果合併——這是遞迴法最有力的應用。
+  合併排序、快速排序、二元搜尋，全都是這個框架。</p>
+
+<h2>06.1 三部曲</h2>
+<ol class="steps">
+  <li><b>分割 (Divide)</b>：把問題切成幾個同結構、但更小的子問題。</li>
+  <li><b>征服 (Conquer)</b>：遞迴解決子問題；子問題夠小就直接解。</li>
+  <li><b>組合 (Combine)</b>：把子問題的答案合併成原問題的答案。</li>
+</ol>
+
+<div class="theorem">
+  <div class="kicker">主定理 (Master Theorem) 速記</div>
+  若 <code>T(n) = aT(n/b) + O(n<sup>c</sup>)</code>，則
+  <code>T(n) = O(n<sup>c</sup> log n)</code> 當 a = b<sup>c</sup>（如合併排序：a=b=c=2 → O(n log n)）。
+</div>
+
+<h2>06.2 合併排序 Merge Sort：O(n log n)</h2>
+<p>把陣列砍半、砍半、再砍半，直到只剩一個元素（天然排好），再兩兩「合併」成有序陣列。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">Merge Sort 動畫</span><span class="d">橘/綠 = 正在比較，綠底 = 已寫入位置</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>元素數 <input id="c6-mn" type="range" min="8" max="24" value="16"> <span id="c6-mn-v">16</span></label>
+      <button class="btn primary" id="c6-mrun">重新洗牌</button>
+    </div>
+    <canvas id="c6-merge" style="height:230px" class="demo-canvas"></canvas>
+    <div id="c6-mstatus" class="statusline"></div>
+    <div id="c6-mplayer"></div>
+  </div>
+</div>
+
+<h2>06.3 快速排序 Quick Sort：選基準、分兩邊</h2>
+<p>選一個「基準」(pivot)，把小的挪到左邊、大的挪到右邊，再遞迴排兩邊（這裡用 Lomuto 分割）。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">Quick Sort 動畫</span><span class="d">紫 = 基準 pivot，黃 = 正在比對的元素</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>元素數 <input id="c6-qn" type="range" min="8" max="24" value="15"> <span id="c6-qn-v">15</span></label>
+      <button class="btn primary" id="c6-qrun">重新洗牌</button>
+    </div>
+    <canvas id="c6-quick" style="height:230px" class="demo-canvas"></canvas>
+    <div id="c6-qstatus" class="statusline"></div>
+    <div id="c6-qplayer"></div>
+  </div>
+</div>
+
+<h2>06.4 二元搜尋 Binary Search：每次砍掉一半</h2>
+<p>在已排序的陣列裡找目標：看中間元素，太大就往左、太小就往右，每次都刪掉一半——所以只要 O(log n)。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">二元搜尋逐步示範</span><span class="d">黃 = low、藍 = mid、紫 = high</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>陣列長度 <input id="c6-bn" type="range" min="8" max="32" value="16"> <span id="c6-bn-v">16</span></label>
+      <label>搜尋目標 <input id="c6-bt" type="number" min="1" max="99" value="42"></label>
+      <button class="btn primary" id="c6-brun">執行</button>
+      <span id="c6-bres" class="small"></span>
+    </div>
+    <div id="c6-barr" class="arr"></div>
+    <div id="c6-bstatus" class="statusline"></div>
+    <div id="c6-bplayer"></div>
+  </div>
+</div>
+
+<h2>06.5 快速冪 Fast Exponentiation：把乘法次數壓到 log n</h2>
+<p>算 <code>3¹³</code> 不用乘 13 次。把指數看成二進位 <code>13 = 1101₂</code>，邊讀位元邊「平方累乘」：</p>
+<pre><code>result = 1, base = x
+對指數的每個位元（由左往右）：
+    如果位元是 1 → result = result × base
+    base = base × base          # 每步都平方</code></pre>
+
+<div class="card">
+  <div class="hd"><span class="t">快速冪互動</span><span class="d">看 base 如何平方、result 如何累積</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>底數 x <input id="c6-fx" type="number" value="3" min="2" max="20"></label>
+      <label>指數 e <input id="c6-fe" type="number" value="13" min="1" max="40"></label>
+      <button class="btn primary" id="c6-frun">執行</button>
+      <span class="small">普通連乘需 e−1 次乘法，快速冪只要 2·⌈log₂e⌉+ 次。</span>
+    </div>
+    <table class="std" id="c6-ftable" style="font-size:13px"></table>
+    <div id="c6-fstatus" class="statusline"></div>
+    <div id="c6-fplayer"></div>
+  </div>
+</div>
+
+<div class="pagenav">
+  <a href="05-search.html">← 05 搜尋法</a>
+  <a href="07-dp.html">07 動態規劃法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 06 分割擊破法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, el = AG.el, fmt = AG.fmt;
+
+  /* ===== 06.2 Merge Sort ===== */
+  const mn = $('#c6-mn'), mnV = $('#c6-mn-v'), mRun = $('#c6-mrun');
+  const mCv = $('#c6-merge'), mSt = $('#c6-mstatus');
+  const mPlayer = new AG.Player({ render: fr => drawSort(mCv, mSt, fr), speed: 200 });
+
+  function mergeFrames(base) {
+    const frames = [], a = base.slice();
+    function push(kind, extra) { frames.push(Object.assign({ kind, a: a.slice() }, extra)); }
+    (function rec(lo, hi) {
+      push('seg', { lo, hi, text: `進入區間 [${lo}, ${hi})` });
+      if (hi - lo <= 1) { push('base', { lo, text: `基底 [${lo}, ${hi})：只剩 1 個元素` }); return; }
+      const mid = (lo + hi) >> 1;
+      push('split', { mid, text: `分割：[${lo},${mid}) 與 [${mid},${hi})` });
+      rec(lo, mid); rec(mid, hi);
+      const tmp = [], L = a.slice(lo, mid), R = a.slice(mid, hi);
+      let i = 0, j = 0;
+      while (i < L.length && j < R.length) {
+        push('cmp', { i: lo + i, j: mid + j, text: `比較 a[${lo + i}]=${L[i]} vs a[${mid + j}]=${R[j]}` });
+        (L[i] <= R[j]) ? tmp.push(L[i++]) : tmp.push(R[j++]);
+      }
+      while (i < L.length) tmp.push(L[i++]);
+      while (j < R.length) tmp.push(R[j++]);
+      for (let k = 0; k < tmp.length; k++) {
+        a[lo + k] = tmp[k];
+        push('write', { idx: lo + k, text: `把 ${tmp[k]} 寫回位置 ${lo + k}` });
+      }
+      push('done', { lo, hi, text: `區間 [${lo},${hi}) 合併完成` });
+    })(0, a.length);
+    return frames;
+  }
+  function drawSort(cv, st, fr) {
+    const colors = new Array(fr.a.length).fill('rgba(11,92,173,.75)');
+    if (fr.kind === 'cmp') { colors[fr.i] = '#d97706'; colors[fr.j] = '#0d9488'; }
+    else if (fr.kind === 'write') colors[fr.idx] = '#0d9488';
+    AG.bars(cv, fr.a, { colors, value: true });
+    st.textContent = fr.text;
+  }
+  function setupMerge() {
+    const n = +mn.value; mnV.textContent = n;
+    mPlayer.setFrames(mergeFrames(AG.randArr(n, 55)));
+    if (!mPlayer.boxEl.isConnected) $('#c6-mplayer').append(mPlayer.boxEl);
+  }
+  mn.addEventListener('input', () => mnV.textContent = mn.value);
+  mRun.addEventListener('click', setupMerge);
+  setupMerge();
+
+  /* ===== 06.3 Quick Sort ===== */
+  const qn = $('#c6-qn'), qnV = $('#c6-qn-v'), qRun = $('#c6-qrun');
+  const qCv = $('#c6-quick'), qSt = $('#c6-qstatus');
+  const qPlayer = new AG.Player({ render: fr => drawSort(qCv, qSt, fr), speed: 150 });
+
+  function quickFrames(base) {
+    const frames = [], a = base.slice();
+    function push(kind, extra) { frames.push(Object.assign({ kind, a: a.slice() }, extra)); }
+    (function rec(lo, hi) {
+      if (hi - lo <= 1) return;
+      let pivot = hi - 1;
+      push('pivot', { i: pivot, text: `選基準 pivot = a[${pivot}] = ${a[pivot]}` });
+      let i = lo;
+      for (let j = lo; j < hi - 1; j++) {
+        push('compare', { j, p: pivot, text: `a[${j}]=${a[j]} ${a[j] <= a[pivot] ? '≤' : '>'} pivot ${a[pivot]}` });
+        if (a[j] <= a[pivot]) {
+          if (i !== j) {
+            const t = a[i]; a[i] = a[j]; a[j] = t;
+            push('swap', { i, j, text: `交換 a[${i}] 與 a[${j}]` });
+          }
+          i++;
+        }
+      }
+      const t = a[i]; a[i] = a[pivot]; a[pivot] = t;
+      push('part', { i, text: `把 pivot 放回位置 ${i}：左邊全 ≤ pivot、右邊全 > pivot` });
+      rec(lo, i); rec(i + 1, hi);
+    })(0, a.length);
+    frames.push({ kind: 'final', a: a.slice(), text: '✔ 排序完成。' });
+    return frames;
+  }
+  // 覆寫 drawSort 讓 quick 的種類有顏色（用專屬 render）
+  function drawSortQ(cv, st, fr) {
+    const colors = new Array(fr.a.length).fill('rgba(11,92,173,.75)');
+    if (fr.kind === 'pivot' || fr.kind === 'part') colors[fr.i] = '#7c3aed';
+    else if (fr.kind === 'compare') { colors[fr.j] = '#d97706'; colors[fr.p] = '#7c3aed'; }
+    else if (fr.kind === 'swap') { colors[fr.i] = '#ef4444'; colors[fr.j] = '#ef4444'; }
+    AG.bars(cv, fr.a, { colors, value: true });
+    st.textContent = fr.text;
+  }
+  function setupQuick() {
+    const n = +qn.value; qnV.textContent = n;
+    qPlayer.setFrames(quickFrames(AG.randArr(n, 55)));
+    if (!qPlayer.boxEl.isConnected) $('#c6-qplayer').append(qPlayer.boxEl);
+  }
+  qn.addEventListener('input', () => qnV.textContent = qn.value);
+  qRun.addEventListener('click', setupQuick);
+  setupQuick();
+
+  /* ===== 06.4 Binary Search ===== */
+  const bn = $('#c6-bn'), bnV = $('#c6-bn-v'), bt = $('#c6-bt'), bRun = $('#c6-brun'), bRes = $('#c6-bres');
+  const bArrEl = $('#c6-barr'), bSt = $('#c6-bstatus');
+  const bPlayer = new AG.Player({ render: fr => drawBsearch(fr), speed: 800 });
+  let bArray = [];
+  function binFrames(target) {
+    const frames = [];
+    let lo = 0, hi = bArray.length - 1, mid = -1;
+    while (lo <= hi) {
+      mid = (lo + hi) >> 1;
+      frames.push({ a: bArray.slice(), lo, mid, hi, text: `檢查 a[${mid}] = ${bArray[mid]} ${bArray[mid] === target ? '= 目標 ✔' : bArray[mid] < target ? '< target → 往右' : '> target → 往左'}` });
+      if (bArray[mid] < target) lo = mid + 1;
+      else if (bArray[mid] > target) hi = mid - 1;
+      else {
+        frames.push({ a: bArray.slice(), lo: -1, mid, hi: -1, found: true, text: `找到了！a[${mid}] = ${target}` });
+        return frames;
+      }
+    }
+    frames.push({ a: bArray.slice(), lo: -1, mid: -1, hi: -1, text: `找不到 ${target}（${bArray[0]}…${bArray[bArray.length - 1]} 之間沒有它）` });
+    bRes.textContent = '❌ 未找到';
+    return frames;
+  }
+  function drawBsearch(fr) {
+    bArrEl.innerHTML = '';
+    fr.a.forEach((v, idx) => {
+      let cls = null;
+      if (idx === fr.mid) cls = 'mid';
+      else if (idx === fr.lo) cls = 'lo';
+      else if (idx === fr.hi) cls = 'hi';
+      if (fr.found && idx === fr.mid) cls = 'done';
+      bArrEl.append(el('span', { class: cls || '' }, String(v)));
+    });
+    bSt.innerHTML = fr.text;
+  }
+  function setupBsearch() {
+    const n = +bn.value; bnV.textContent = n; bt.max = 99;
+    bArray = [];
+    const set = new Set();
+    while (set.size < n) set.add(1 + Math.floor(Math.random() * 99));
+    bArray = [...set].sort((x, y) => x - y);
+    const target = Math.max(1, Math.min(99, bt.value | 0));
+    bRes.textContent = '';
+    const frames = binFrames(target);
+    bPlayer.setFrames(frames);
+    if (!bPlayer.boxEl.isConnected) $('#c6-bplayer').append(bPlayer.boxEl);
+  }
+  bn.addEventListener('input', () => bnV.textContent = bn.value);
+  bRun.addEventListener('click', setupBsearch);
+  setupBsearch();
+
+  /* ===== 06.5 Fast Exponentiation ===== */
+  const fx = $('#c6-fx'), fe = $('#c6-fe'), fRun = $('#c6-frun');
+  const ftable = $('#c6-ftable'), fSt = $('#c6-fstatus');
+  const fPlayer = new AG.Player({ render: fr => drawFastPow(fr), speed: 900 });
+
+  function powerFrames(x, e) {
+    const raw = [];
+    let e2 = e;
+    while (e2 > 0) { raw.push(e2 & 1); e2 = Math.floor(e2 / 2); }
+    const bits = raw.reverse();                       // 從最高位開始處理
+    const frames = [];
+    let result = 1, base = x;
+    const rows = [];
+    rows.push({ bit: '—', act: '初始化', result, base, cur: -1 });
+    frames.push({ bits, rows: rows.map(r => ({ ...r })), cur: -1 });
+    for (let i = 0; i < bits.length; i++) {
+      let act;
+      if (bits[i] === 1) { result *= base; act = `位元 1 → result = result × base = ${result}`; }
+      else act = `位元 0 → 不累乘，result 仍 = ${result}`;
+      rows.push({ bit: bits[i], act, result, base, cur: i });
+      frames.push({ bits, rows: rows.map(r => ({ ...r })), cur: i });
+      base *= base;
+      const r = rows[rows.length - 1];
+      r.act = act + `　→　base = base² = ${base}`;
+      frames.push({ bits, rows: rows.map(r => ({ ...r })), cur: i });
+    }
+    rows[rows.length - 1].final = true;
+    rows.push({ bit: '✔', act: `${x}^${e} = ${result}`, result, base, cur: -2 });
+    frames.push({ bits, rows: rows.map(r => ({ ...r })), cur: -2 });
+    return frames;
+  }
+  function drawFastPow(fr) {
+    ftable.innerHTML = '<tr><th>位元</th><th>動作</th><th>result</th><th>base</th></tr>' +
+      fr.rows.map((r, i) => {
+        const cls = r.final ? 'style="background:#bbf7d0;font-weight:800"' : (r.cur === fr.cur ? 'style="background:#fef3c7;font-weight:700"' : '');
+        return `<tr ${cls}><td>${r.bit}</td><td>${r.act}</td><td>${r.result}</td><td>${r.base}</td></tr>`;
+      }).join('');
+    const last = fr.rows[fr.rows.length - 1];
+    fSt.innerHTML = fr.cur === -2 ? `✔ 完成：${last.act}` : `第 ${fr.cur + 1}/${fr.bits.length} 位元：${last.act}`;
+  }
+  fRun.addEventListener('click', () => {
+    const x = Math.max(2, fx.value | 0), e = Math.max(1, Math.min(40, fe.value | 0));
+    fPlayer.setFrames(powerFrames(x, e));
+    if (!fPlayer.boxEl.isConnected) $('#c6-fplayer').append(fPlayer.boxEl);
+  });
+  fRun.click();
+})();
+</script>
+</body>
+</html>

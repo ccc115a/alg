@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 暴力法與列舉 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip on" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>02 暴力法與列舉 <span class="sub">窮舉一切可能，檢查哪一個正確</span></h1>
+<p class="lead">暴力法 (brute-force) 是最樸素的演算法：<b>把所有可能的情況全部列出來，逐一檢查</b>。它常常不是最快的，但永遠保證找得到答案——也因此是驗證其他演算法「對不對」的基準。</p>
+
+<h2>02.1 暴力法的精神</h2>
+<ol class="steps">
+  <li><b>定義解空間</b>：答案可能是哪些東西？（排列？組合？布林設定？）</li>
+  <li><b>系統化列舉</b>：確保每個可能解都被拜訪到、且不重複。</li>
+  <li><b>逐一驗證</b>：對每個候選解檢查它是否滿足條件。</li>
+</ol>
+<p>生活中處處是暴力法：試密碼、窮舉牌型、比特幣挖礦就是一直試 SHA 雜湊值直到頭幾位是 0。</p>
+<div class="warn"><strong>代價：</strong>解空間成長極快。n 個元素的排列有 <code>n!</code> 種、子集合有 <code>2ⁿ</code> 種。<code>n=30</code> 時連 2³⁰ ≈ 10⁹ 種都跑不完，所以暴力法通常只用在「小尺寸」問題。</div>
+
+<h2>02.2 真值表：列舉所有的布林設定</h2>
+<p>一個有 <code>k</code> 個變數的問題，可以用 <code>2<sup>k</sup></code> 條真值表列舉出所有「開關組合」——這正是 SAT、密碼學中的窮舉搜尋空間。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">真值表生成器</span><span class="d">列舉 k 個布林變數的 2ᵏ 種組合</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>變數數 k <input id="b2-k" type="range" min="1" max="4" value="3"> <span id="b2-k-v">3</span></label>
+      <span class="small">組合數 = <b id="b2-count">8</b></span>
+    </div>
+    <table class="std" id="b2-tt"></table>
+  </div>
+</div>
+
+<h2>02.3 排列：n! 種順序</h2>
+<p>「有幾種排法」就是排列數 <code>n!</code>。旅行推銷員問題要考慮所有拜訪順序，所以暴力解是 O(n!)。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">排列生成器</span><span class="d">依序列舉 A、B、C… 的所有排列</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>元素數 n <input id="b2-pn" type="range" min="2" max="6" value="3"> <span id="b2-pn-v">3</span></label>
+      <span class="small">排列數 = n! = <b id="b2-pcount">6</b></span>
+    </div>
+    <div id="b2-perms" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+</div>
+
+<h2>02.4 組合：C(n, r) 種選取</h2>
+<p>「從 n 個東西選 r 個（不管順序）」——例如開獎、抽樣、選擇題作答。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">組合生成器</span><span class="d">從 0..n−1 中選 r 個元素（字典序）</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>n <input id="b2-cn" type="range" min="2" max="8" value="5"></label>
+      <label>r <input id="b2-cr" type="range" min="0" max="8" value="2"></label>
+      <span class="small">組合數 = C(n,r) = <b id="b2-ccount">10</b></span>
+    </div>
+    <div id="b2-combs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+</div>
+
+<h2>02.5 N 皇后：暴力列舉 + 檢查</h2>
+<p>經典習題：在 N×N 棋盤放 N 個皇后，讓她們互不攻擊（不同列、不同欄、不同對角線）。
+  <b>暴力法</b>把每個皇后隨意放進自己的那一列，窮舉 <code>N<sup>N</sup></code> 種擺法，再一一檢查衝突——
+  直到找到一個「合法解」。</p>
+<pre><code>for code in 0 .. N^N - 1:            # 把 code 解成每列的欄位
+    cols = decode(code)              # 例如 N=4 時 code=114 → [1,3,0,2]
+    if 無衝突(cols):                 # 不同欄 & 不同斜線
+        return cols                  # 找到第一個解，結束</code></pre>
+
+<div class="card">
+  <div class="hd"><span class="t">N 皇后 · 暴力搜尋動畫</span><span class="d">逐個列舉所有擺法，紅色 = 衝突</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>棋盤 N <input id="b2-qn" type="range" min="2" max="5" value="4"> <span id="b2-qn-v">4</span></label>
+      <button class="btn primary" id="b2-qrun">重新產生</button>
+      <span class="small">搜尋空間 Nᴺ = <b id="b2-qspace">256</b> 種</span>
+    </div>
+    <canvas id="b2-queen" style="height:300px" class="demo-canvas"></canvas>
+    <div id="b2-qstatus" class="statusline"></div>
+    <div id="b2-qplayer"></div>
+  </div>
+</div>
+
+<div class="example">
+  <strong>觀察：</strong>N=4 只需要檢查 115 種擺法就找到第一個解；但 N=5 已是 3125 種、N=8 是 16,777,216 種。
+  這就是為什麼課本裡，N 皇后後續會改用「回溯法」(backtracking) 聰明的跳過整片不可能的擺法。
+</div>
+
+<div class="pagenav">
+  <a href="01-complexity.html">← 01 複雜度分析</a>
+  <a href="03-iteration.html">03 迭代法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 02 暴力法與列舉</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, $$ = AG.$$, el = AG.el;
+
+  // ---- 02.2 真值表 ----
+  const ttK = $('#b2-k'), ttRows = $('#b2-tt'), ttV = $('#b2-k-v'), ttCount = $('#b2-count');
+  function drawTT() {
+    const k = +ttK.value; ttV.textContent = k;
+    ttRows.innerHTML = '';
+    const head = '<tr><th>行號</th>' + Array.from({length:k},(_,i)=>`<th>${String.fromCharCode(65+i)}</th>`).join('') + '</tr>';
+    let body = head;
+    const rows = Math.pow(2, k);
+    for (let i = 0; i < rows; i++) {
+      const bits = [];
+      for (let j = k - 1; j >= 0; j--) bits.push((i >> j) & 1);
+      body += `<tr><td>${i}</td>` + bits.map(b => `<td>${b}</td>`).join('') + '</tr>';
+    }
+    ttRows.innerHTML = body;
+    ttCount.textContent = rows;
+  }
+  ttK.addEventListener('input', drawTT);
+  drawTT();
+
+  // ---- 02.3 排列 ----
+  const pn = $('#b2-pn'), permsEl = $('#b2-perms'), pnV = $('#b2-pn-v'), pc = $('#b2-pcount');
+  function genPerms(n) {
+    const items = []; for (let i = 0; i < n; i++) items.push(String.fromCharCode(65 + i));
+    const out = [];
+    function rec(prefix, rest) {
+      if (!rest.length) { out.push(prefix.join('')); return; }
+      for (let i = 0; i < rest.length; i++) {
+        const next = rest.slice(0, i).concat(rest.slice(i + 1));
+        rec(prefix.concat(rest[i]), next);
+      }
+    }
+    rec([], items);
+    return out;
+  }
+  function drawPerms() {
+    const n = +pn.value; pnV.textContent = n;
+    permsEl.innerHTML = '';
+    const ps = genPerms(n);
+    ps.forEach((p, i) => {
+      const s = el('span', { style: i === ps.length - 1 ? 'border:2px solid #0d9488;font-weight:700;background:#f0fdfa' : '' }, p);
+      permsEl.append(s);
+    });
+    pc.textContent = ps.length;
+  }
+  pn.addEventListener('input', drawPerms);
+  drawPerms();
+
+  // ---- 02.4 組合 ----
+  const cn = $('#b2-cn'), cr = $('#b2-cr'), combsEl = $('#b2-combs'), cc = $('#b2-ccount');
+  function genCombs(n, r) {
+    const out = [];
+    function rec(start, chosen) {
+      if (chosen.length === r) { out.push(chosen.join(',')); return; }
+      for (let i = start; i < n; i++) rec(i + 1, chosen.concat(i));
+    }
+    if (r <= n) rec(0, []);
+    return out;
+  }
+  function drawCombs() {
+    const n = +cn.value, r = Math.min(+cr.value, n); cr.value = r;
+    combsEl.innerHTML = '';
+    const cs = genCombs(n, r);
+    cs.forEach(c => combsEl.append(el('span', {}, c)));
+    cc.textContent = cs.length;
+  }
+  cn.addEventListener('input', drawCombs);
+  cr.addEventListener('input', drawCombs);
+  drawCombs();
+
+  // ---- 02.5 N 皇后 ----
+  const qn = $('#b2-qn'), qRun = $('#b2-qrun'), qCv = $('#b2-queen'), qSt = $('#b2-qstatus'), qSpace = $('#b2-qspace');
+  const qPlayer = new AG.Player({ render: drawQueen, row: null });
+
+  function conflict(N, cols) {
+    for (let i = 0; i < N; i++) for (let k = i + 1; k < N; k++) {
+      if (cols[i] === cols[k]) return [i, k];
+      if (Math.abs(i - k) === Math.abs(cols[i] - cols[k])) return [i, k];
+    }
+    return null;
+  }
+  function bruteQueen(N) {
+    const total = Math.pow(N, N);
+    const frames = [];
+    for (let code = 0; code < total; code++) {
+      const cols = []; let c = code;
+      for (let r = 0; r < N; r++) { cols.push(c % N); c = Math.floor(c / N); }
+      const bad = conflict(N, cols);
+      frames.push({ cols, checked: code + 1, total, bad, found: bad === null });
+      if (bad === null) break;
+    }
+    return frames;
+  }
+  function drawQueen(frame) {
+    const N = qn.value | 0;
+    const ctx = qCv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = qCv.clientWidth || 600; const H = qCv.clientHeight || 260;
+    qCv.width = W * dpr; qCv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const cell = Math.min(W, H - 20) / N;
+    const ox = (W - cell * N) / 2, oy = 10;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      ctx.fillStyle = (r + c) % 2 ? '#dfe7f0' : '#ffffff';
+      ctx.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+    }
+    const badSet = frame.bad ? new Set(frame.bad.map(r => r * N + frame.cols[r])) : new Set();
+    frame.cols.forEach((c, r) => {
+      const x = ox + c * cell, y = oy + r * cell;
+      if (badSet.has(r * N + c)) ctx.fillStyle = 'rgba(252,165,165,.65)';
+      else if (frame.found) ctx.fillStyle = 'rgba(187,247,208,.7)';
+      else ctx.fillStyle = 'rgba(219,234,254,.6)';
+      ctx.fillRect(x, y, cell, cell);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, cell, cell);
+      ctx.fillStyle = frame.found ? '#0d9488' : (badSet.has(r * N + c) ? '#b91c1c' : '#334155');
+      ctx.font = `bold ${cell * .62}px serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('♛', x + cell / 2, y + cell / 2 + 2);
+    });
+    qSt.innerHTML = frame.found
+      ? `<span style="color:#0d9488;font-weight:700">✔ 找到解：${frame.cols.join(', ')}</span>　已檢查 ${frame.checked.toLocaleString()} / ${frame.total.toLocaleString()} 種`
+      : `✘ 第 ${frame.checked.toLocaleString()} 種（${frame.cols.join(', ')}）有衝突 → 不合法`;
+  }
+  function setupQueen() {
+    qSpace.textContent = Math.pow(qn.value | 0, qn.value | 0).toLocaleString();
+    const frames = bruteQueen(qn.value | 0);
+    qPlayer.setFrames(frames);
+    if (frames.length) drawQueen(frames[0]);
+    if (!qPlayer.boxEl.isConnected) AG.$('#b2-qplayer').append(qPlayer.boxEl);
+  }
+  qRun.addEventListener('click', setupQueen);
+  qn.addEventListener('input', () => { AG.$('#b2-qn-v').textContent = qn.value; });
+  setupQueen();
+})();
+</script>
+</body>
+</html>

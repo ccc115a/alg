@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 領域應用 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip on" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>10 領域應用 <span class="sub">演算法在最常見的問題上，怎麼落地</span></h1>
+<p class="lead">前面九章是「方法工具箱」。這章挑一個最常用到的場景——<b>在長字串裡找短字串</b>
+  （搜尋引擎、文字編輯器、DNA 比對都用它）——看看「方法的改良」能省下多少力氣。</p>
+
+<h2>10.1 字串搜尋：暴力 vs KMP</h2>
+<p>暴力法在每個位置試著對齊模式，失敗就「左移一格」再來。最糟情況（例如大量相同字元）會退化成 O(nm)。</p>
+<pre><code># 暴力：每次都把模式往右挪一格
+for s in 0..n-m:
+    for j in 0..m:                # 對齊比較
+        if text[s+j]] != p[j]: break
+        if j == m: 找到一處
+
+# KMP：先算「跳過表」π，失敗時依據 π 一次跳過已確認相同的前綴
+失敗時：j ← π[j-1]（text 指標不退回），可以保證 O(n+m)
+```</code></pre>
+<div class="theorem">
+  <div class="kicker">KMP 的關鍵想法</div>
+  當 pattern 的第 <code>j</code> 字元失配時，前面的 j 個字元已經比對成功過。
+  <code>π[j−1]</code> 告訴我們：這些字元裡「最長的真前綴 = 真後綴」有多長，
+  直接把 <code>j</code> 跳回那麼長——<b>絕不把 text 指標往回走</b>。
+</div>
+
+<div class="card">
+  <div class="hd"><span class="t">KMP 逐步動畫</span><span class="d">綠 = 已確認相同，橙 = 正在比較，黃底 π = 跳過表</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>文字 text <input id="c10-text" type="text" value="ABABDABACDABABCABAB" style="max-width:260px"></label>
+      <label>模式 pattern <input id="c10-pat" type="text" value="ABABCABAB" style="max-width:150px"></label>
+      <button class="btn primary" id="c10-run">執行</button>
+    </div>
+    <div id="c10-rows" style="font:15px/1.7 ui-monospace,monospace;white-space:nowrap;overflow-x:auto"></div>
+    <table class="std" style="font-size:12.5px">
+      <tr><th style="width:80px">階段</th><th>π 跳過表</th><th style="width:90px">匹配位置</th></tr>
+      <tr><td>① 建 π</td><td id="c10-pi1">—</td><td>—</td></tr>
+      <tr><td>② 搜尋</td><td id="c10-pi2">—</td><td id="c10-founds">—</td></tr>
+    </table>
+    <div id="c10-status" class="statusline"></div>
+    <div id="c10-player"></div>
+    <p class="small" id="c10-cmp"></p>
+  </div>
+</div>
+
+<h2>10.2 為什麼 O(n+m) 值得追求</h2>
+<p>假設 text 長 100 萬字元、pattern 長 1000：暴力最糟要吃 10⁹ 次比較；KMP 保證最多約 2×10⁶ 次。</p>
+<table class="std">
+  <tr><th>方法</th><th>時間</th><th>例子</th></tr>
+  <tr><td>暴力</td><td>O(n·m)（最糟）</td><td>DNA「ACGT」重複序列時退化</td></tr>
+  <tr><td>KMP</td><td>O(n+m)</td><td>永遠線性，pattern 再長都不怕</td></tr>
+  <tr><td>Boyer-Moore / Rabin-Karp</td><td>平均更快</td><td>實際搜尋引擎、grep 常用</td></tr>
+</table>
+
+<div class="note">
+  <div class="kicker">更多應用連結</div>
+  同一套「預處理 + 跳過」的精神也出現在：影像的邊緣偵測（卷積）、
+  密碼學的雜湊（SHA）、編譯器的 BNF 剖析（遞迴下降）、以及電路的模擬（第 03 章領域）。
+  學了方法，剩下的就是「把它用到對的地方」。
+</div>
+
+<div class="pagenav">
+  <a href="09-random.html">← 09 隨機演算法</a>
+  <a href="index.html">課程首頁 →</a>
+</div>
+<div class="foot">演算法互動教材 · 10 領域應用（全書完）</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, el = AG.el;
+  const textIn = $('#c10-text'), patIn = $('#c10-pat'), runBtn = $('#c10-run');
+  const rowsEl = $('#c10-rows'), stEl = $('#c10-status'), pi1El = $('#c10-pi1'), pi2El = $('#c10-pi2'), foundsEl = $('#c10-founds'), cmpEl = $('#c10-cmp');
+  const px = 18;   // 每字元寬度（px）
+  const c10Player = new AG.Player({ render: fr => drawKMP(fr), speed: 420 });
+
+  function prefixTable(p) {
+    const pi = [0], m = p.length;
+    let k = 0;
+    for (let i = 1; i < m; i++) {
+      while (k > 0 && p[i] !== p[k]) k = pi[k - 1];
+      if (p[i] === p[k]) k++;
+      pi.push(k);
+    }
+    return pi;
+  }
+  function buildFrames(t, p) {
+    const frames = [];
+    const m = p.length, n = t.length;
+    const pi = prefixTable(p);
+    // 階段一：建 π
+    const pre = prefixTable(p);
+    let k = 0;
+    for (let i = 0; i < m; i++) {
+      if (i === 0) { pre[0] = 0; }
+      else {
+        while (k > 0 && p[i] !== p[k]) k = pre[k - 1];
+        if (p[i] === p[k]) k++;
+        pre[i] = k;
+      }
+      frames.push({ phase: 'prefix', t, p, i, k, pi: pre.slice(0, i + 1), piFull: pre.slice(0, Math.max(i + 1, 1)), msg: `π[${i}]：比較 p[${i}]=${p[i]} 與 p[${k}]=${p[k]}，得 π=${k}` });
+    }
+    // 階段二：搜尋
+    let i = 0, j = 0, cmpCount = 0;
+    const founds = [];
+    while (i < n) {
+      cmpCount++;
+      frames.push({ phase: 'search', t, p, i, j, piFull: pre, msg: `比較 text[${i}]=${t[i]} 與 p[${j}]=${p[j]}（第 ${cmpCount} 次比較）`, cmpCount, founds: founds.slice() });
+      if (t[i] === p[j]) {
+        i++; j++;
+        if (j === m) {
+          founds.push(i - m);
+          frames.push({ phase: 'search', t, p, i, j: m, piFull: pre, msg: `✔ 在第 ${i - m} 位置找到匹配！j 依 π 跳到 ${pre[j - 1]} 繼續`, cmpCount, founds: founds.slice(), matchedEnd: i, matchedStart: i - m });
+          j = pre[j - 1];
+          if (i < n) frames.push({ phase: 'search', t, p, i, j, piFull: pre, msg: `繼續：i=${i}, j=${j}`, cmpCount, founds: founds.slice() });
+        }
+      } else if (j > 0) {
+        frames.push({ phase: 'search', t, p, i, j, piFull: pre, fail: true, msg: `失配：j 從 ${j} 依 π 跳回 ${pre[j - 1]}（text 指標 ${i} 不退回）`, cmpCount, founds: founds.slice() });
+        j = pre[j - 1];
+      } else {
+        i++;
+        frames.push({ phase: 'search', t, p, i, j, piFull: pre, msg: `失配且 j=0：text 指標前進一位`, cmpCount, founds: founds.slice() });
+      }
+    }
+    frames.push({ phase: 'done', t, p, i, j: 0, piFull: pre, msg: `✔ 搜尋結束。`, cmpCount, founds: founds.slice(), done: true });
+    return { frames, pi: pre, naiveCmp: naiveCount(t, p) };
+  }
+  function naiveCount(t, p) {
+    let c = 0;
+    for (let s = 0; s <= t.length - p.length; s++) {
+      for (let j = 0; j < p.length; j++) {
+        c++;
+        if (t[s + j] !== p[j]) break;
+      }
+    }
+    return c;
+  }
+  function charSpan(ch, cls, extra) {
+    const s = el('span', { class: cls || '', style: 'display:inline-block;width:' + px + 'px;text-align:center;border-bottom:2px solid transparent;margin-right:1px' + (extra || '') }, ch);
+    return s;
+  }
+  function drawKMP(fr) {
+    rowsEl.innerHTML = '';
+    const t = fr.t, p = fr.p;
+    // text 行
+    const row1 = el('div');
+    for (let idx = 0; idx < t.length; idx++) {
+      let cls = '';
+      let extra = '';
+      if (fr.phase === 'search' && idx === fr.i) { cls = 'hot'; extra = ';background:#fecaca;border-color:#dc2626;font-weight:700'; }
+      else if (fr.matchedEnd && idx >= fr.matchedStart && idx < fr.matchedEnd) { cls = 'done'; extra = ';background:#bbf7d0;font-weight:700'; }
+      row1.append(charSpan(t[idx], cls, extra));
+    }
+    const row2 = el('div', { style: 'margin-top:2px' });
+    const off = (fr.phase === 'search') ? (fr.i - fr.j) : 0;
+    if (off > 0) row2.append(el('span', { style: 'display:inline-block;width:' + (off * (px + 1)) + 'px' }, ''));
+    for (let idx = 0; idx < p.length; idx++) {
+      let extra = '';
+      if (fr.phase === 'search' && idx === fr.j) { extra = ';background:#fef3c7;border-bottom-color:#d97706;font-weight:700'; }
+      else if (fr.phase === 'search' && idx < fr.j) { extra = ';border-bottom:2px solid #0d9488;color:#0d9488'; }
+      row2.append(charSpan(p[idx], '', extra));
+    }
+    rowsEl.append(row1, row2);
+    // π 顯示
+    const piStrP = fr.piFull ? '[' + fr.piFull.join(', ') + ']' : '—';
+    if (fr.phase === 'prefix') { pi1El.textContent = piStrP; }
+    else { pi2El.textContent = piStrP; if (fr.founds) foundsEl.textContent = fr.founds.length ? fr.founds.join(', ') : '（還沒找到）'; }
+    stEl.innerHTML = fr.msg;
+    if (fr.done || fr.cmpCount) {
+      cmpEl.textContent = fr.done ? `KMP 比較次數 = ${fr.cmpCount}　·　暴力法（同樣找完）約 ${naiveCount(fr.t, fr.p)} 次` : `目前 KMP 已比較 ${fr.cmpCount} 次`;
+    }
+  }
+  function setup() {
+    const t = textIn.value.trim() || 'ABABDABACDABABCABAB';
+    const p = patIn.value.trim() || 'ABABCABAB';
+    textIn.value = t; patIn.value = p;
+    const { frames } = buildFrames(t, p);
+    c10Player.setFrames(frames);
+    if (!c10Player.boxEl.isConnected) $('#c10-player').append(c10Player.boxEl);
+  }
+  runBtn.addEventListener('click', setup);
+  setup();
+})();
+</script>
+</body>
+</html>

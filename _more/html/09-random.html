@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 隨機演算法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip on" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>09 隨機演算法 <span class="sub">把「運氣」當成一種計算資源</span></h1>
+<p class="lead">有時候丟硬幣反而更快、更簡單。<b>蒙地卡羅 (Monte Carlo)</b> 用大量隨機樣本去<b>估計</b>答案
+  （答案可能有點誤差，但很快）；數學家早在電腦出現前就發現：算 π、算積分，硬幣丟得夠多答案就越準。</p>
+
+<h2>09.1 蒙地卡羅求 π</h2>
+<p>在 1×1 的正方形裡丟色子（隨機點），落在半徑 1 的 1/4 圓內的機率 = 圓面積 / 正方形面積 = π/4。
+  所以 <code>π ≈ 4 × (圓內點數 / 總點數)</code>。點丟得越多，估計越準。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">丟色子求 π</span><span class="d">每批加入 n 個隨機點，比較估計值與真值</span></div>
+  <div class="bd">
+    <div class="controls">
+      <button class="btn primary" id="c9-pi-run">▶ 開始 / 暫停</button>
+      <button class="btn" id="c9-pi-step">丢一批</button>
+      <button class="btn" id="c9-pi-clear">清除</button>
+      <label>每批點數 <input id="c9-pi-batch" type="range" min="1" max="200" value="40"></label>
+    </div>
+    <canvas id="c9-pi" style="height:310px" class="demo-canvas"></canvas>
+    <div class="legend">
+      <span><i style="background:#0d9488"></i>圓內</span>
+      <span><i style="background:#db2777"></i>圓外</span>
+    </div>
+    <div id="c9-pi-status" class="statusline" style="font-size:15px"></div>
+  </div>
+</div>
+
+<h2>09.2 蒙地卡羅積分</h2>
+<p>想算面積（積分），就隨機丟點、數「曲線下面的點佔多少比例」，再乘上面積範圍。
+  這套方法在高維度（機器學習、物理）特別有用，因為那些地方沒有公式可以列。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">積分面積估計</span><span class="d">黃點 = 曲線內，紫點 = 曲線外</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>函數
+        <select id="c9-int-f">
+          <option value="x2">f(x) = x²　（真值 = 1/3 ≈ 0.3333）</option>
+          <option value="sin">f(x) = sin(πx)　（真值 = 2/π ≈ 0.6366）</option>
+          <option value="exp">f(x) = e⁻ˣ　（真值 ≈ 0.6321）</option>
+        </select>
+      </label>
+      <button class="btn primary" id="c9-int-run">▶ 開始 / 暫停</button>
+      <button class="btn" id="c9-int-step">丢一批</button>
+      <button class="btn" id="c9-int-clear">清除</button>
+    </div>
+    <canvas id="c9-int" style="height:310px" class="demo-canvas"></canvas>
+    <div id="c9-int-status" class="statusline" style="font-size:15px"></div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="kicker">蒙地卡羅 vs 拉斯維加斯</div>
+  <b>蒙地卡羅</b>：答案一定有，但可能錯、誤差隨樣本數縮小（上面兩題就是）。
+  <b>拉斯維加斯 (Las Vegas)</b>：答案一定對，但不保證多久跑完（例：隨機化快速排序——期望 O(n log n)，永遠排對）。
+</div>
+
+<div class="example">
+  <strong>生活連結：</strong>課本的〈03 迭代〉、〈蒙地卡羅法〉章節用同樣的隨機抽樣技巧做「分數評估」；
+  蒙地卡羅也常用在<a>3D 渲染</a>（路徑追蹤光線）與物理模擬。
+</div>
+
+<div class="pagenav">
+  <a href="08-greedy.html">← 08 貪婪法</a>
+  <a href="10-applications.html">10 領域應用 →</a>
+</div>
+<div class="foot">演算法互動教材 · 09 隨機演算法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$;
+
+  /* ---- 共用繪圖基底（正方形 [0,1]²） ---- */
+  function baseCanvas(cv) {
+    const ctx = cv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth || 640, H = cv.clientHeight || 300;
+    const box = Math.min(W * 0.92, H - 40);
+    const ox = (W - box) / 2, oy = (H - box) / 2;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.fillRect(ox, oy, box, box);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.strokeRect(ox, oy, box, box);
+    return { ctx, ox, oy, box };
+  }
+  function plotDart(ctx, x, y, box, px, py, inside) {
+    ctx.fillStyle = inside ? 'rgba(13,148,136,.8)' : 'rgba(219,39,119,.65)';
+    ctx.beginPath(); ctx.arc(px, py, 1.6, 0, 7); ctx.fill();
+  }
+
+  /* ===== π ===== */
+  const piCv = $('#c9-pi'), piRun = $('#c9-pi-run'), piStep = $('#c9-pi-step'), piClear = $('#c9-pi-clear');
+  const piBatch = $('#c9-pi-batch'), piStatus = $('#c9-pi-status');
+  let piTimer = null, pi = { tx: 0, inx: 0, pts: [] };
+
+  function piDraw() {
+    const B = baseCanvas(piCv);
+    const r = B.box, ox = B.ox, oy = B.oy;
+    const ctx = B.ctx;
+    // 圓弧
+    ctx.strokeStyle = '#0d9488'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI / 2); ctx.stroke();
+    // 點
+    pi.pts.forEach(p => plotDart(ctx, 0, 0, 0, ox + p.x * r, oy + (1 - p.y) * r, p.inside));
+    const est = pi.tx ? 4 * pi.inx / pi.tx : 0;
+    const err = Math.abs(est - Math.PI);
+    piStatus.innerHTML = `<b>π ≈ ${est.toFixed(5)}</b>　·　真值 ${Math.PI.toFixed(5)}　·　誤差 ${err.toFixed(5)}　·　點數 ${pi.tx.toLocaleString()}（圓內 ${pi.inx.toLocaleString()}）`;
+  }
+  function piBatchAdd() {
+    const b = +piBatch.value;
+    for (let i = 0; i < b; i++) {
+      const x = Math.random(), y = Math.random();
+      pi.tx++;
+      const inside = x * x + y * y <= 1;
+      if (inside) pi.inx++;
+      if (pi.pts.length > 4000) pi.pts.shift();   // 避免畫太久
+      pi.pts.push({ x, y, inside });
+    }
+    piDraw();
+  }
+  function piToggle() {
+    if (piTimer) { clearInterval(piTimer); piTimer = null; piRun.textContent = '▶ 開始 / 暫停'; }
+    else { piTimer = setInterval(piBatchAdd, 30); piRun.textContent = '⏸ 暫停'; }
+    piRun.classList.toggle('playing', !!piTimer);
+  }
+  piRun.addEventListener('click', piToggle);
+  piStep.addEventListener('click', () => { if (piTimer) { clearInterval(piTimer); piTimer = null; piRun.textContent = '▶ 開始 / 暫停'; } piBatchAdd(); });
+  piClear.addEventListener('click', () => { pi.tx = 0; pi.inx = 0; pi.pts = []; piDraw(); });
+  piDraw();
+
+  /* ===== 蒙地卡羅積分 ===== */
+  const fnSel = $('#c9-int-f');
+  const iCv = $('#c9-int'), iRun = $('#c9-int-run'), iStep = $('#c9-int-step'), iClear = $('#c9-int-clear');
+  const iStatus = $('#c9-int-status');
+  let iTimer = null, integ = { tx: 0, inx: 0, pts: [] };
+  const FUNCS = {
+    x2:  { f: x => x * x,        truth: 1 / 3 },
+    sin: { f: x => Math.sin(Math.PI * x), truth: 2 / Math.PI },
+    exp: { f: x => Math.exp(-x), truth: 1 - 1 / Math.E }
+  };
+  function intDraw() {
+    const fn = FUNCS[fnSel.value] || FUNCS.x2;
+    const B = baseCanvas(iCv);
+    const ctx = B.ctx, r = B.box, ox = B.ox, oy = B.oy;
+    ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i <= 100; i++) {
+      const x = i / 100, y = fn.f(x);
+      const px = ox + x * r, py = oy + (1 - y) * r;
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    integ.pts.forEach(p => plotDart(ctx, 0, 0, 0, ox + p.x * r, oy + (1 - p.y) * r, p.inside));
+    const est = integ.tx ? integ.inx / integ.tx : 0;
+    const err = Math.abs(est - fn.truth);
+    iStatus.innerHTML = `<b>∫₀¹ f(x)dx ≈ ${est.toFixed(5)}</b>　·　真值 ${fn.truth.toFixed(5)}　·　誤差 ${err.toFixed(5)}　·　點數 ${integ.tx.toLocaleString()}`;
+  }
+  function intBatchAdd() {
+    const fn = FUNCS[fnSel.value] || FUNCS.x2;
+    const b = 100;
+    for (let i = 0; i < b; i++) {
+      const x = Math.random(), y = Math.random();
+      integ.tx++;
+      const inside = y <= fn.f(x);
+      if (inside) integ.inx++;
+      if (integ.pts.length > 4000) integ.pts.shift();
+      integ.pts.push({ x, y, inside });
+    }
+    intDraw();
+  }
+  function intToggle() {
+    if (iTimer) { clearInterval(iTimer); iTimer = null; iRun.textContent = '▶ 開始 / 暫停'; }
+    else { iTimer = setInterval(intBatchAdd, 30); iRun.textContent = '⏸ 暫停'; }
+    iRun.classList.toggle('playing', !!iTimer);
+  }
+  iRun.addEventListener('click', intToggle);
+  iStep.addEventListener('click', () => { if (iTimer) { clearInterval(iTimer); iTimer = null; iRun.textContent = '▶ 開始 / 暫停'; } intBatchAdd(); });
+  iClear.addEventListener('click', () => { integ.tx = 0; integ.inx = 0; integ.pts = []; intDraw(); });
+  fnSel.addEventListener('change', iClear.click);
+  intDraw();
+})();
+</script>
+</body>
+</html>

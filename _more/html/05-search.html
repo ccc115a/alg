@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 搜尋法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip on" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>05 搜尋法 <span class="sub">在「狀態空間」裡找一條路</span></h1>
+<p class="lead">很多問題可以翻譯成「在圖上從起點走到終點」：走迷宮、玩拼圖、找最短路徑。
+  差別只在<b>用什麼順序探索</b>——深度優先 (DFS)、廣度優先 (BFS)，以及「知道目標在哪、只往對的方向走」的 A*。</p>
+
+<h2>05.1 兩種盲目的走法：DFS vs BFS</h2>
+<ul>
+  <li><b>深度優先 DFS</b>：用「堆疊」，撞牆才回頭——一路走到底。</li>
+  <li><b>廣度優先 BFS</b>：用「佇列」，一層一層往外擴——先到的路就是最短的（邊權都一樣時）。</li>
+</ul>
+
+<div class="card">
+  <div class="hd"><span class="t">圖形走訪動畫</span><span class="d">黃框 = 待探索的堆疊/佇列，圓號 = 拜訪順序</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label><input type="radio" name="c5-mode" value="dfs" checked> 深度優先 DFS</label>
+      <label><input type="radio" name="c5-mode" value="bfs"> 廣度優先 BFS</label>
+      <button class="btn primary" id="c5-run">重新執行</button>
+    </div>
+    <canvas id="c5-graph" style="height:320px" class="demo-canvas"></canvas>
+    <div id="c5-status" class="statusline"></div>
+    <div id="c5-player"></div>
+  </div>
+</div>
+
+<h2>05.2 知道目標方向：A* 演算法</h2>
+<p>A* 給每個節點評估 <code>f(n) = g(n) + h(n)</code>：
+  <code>g(n)</code> 是「已走過的實際步數」、<code>h(n)</code> 是「估計還有多遠」。
+  只要啟發式 <code>h</code> 不會高估距離（容許的 / admissible），A* 保證找到最短路徑，而且比 BFS 更少走冤枉路。</p>
+<p>下面是一張 20×10 的迷宮：<b>點格子畫牆</b>，先設定起點與終點，再按「執行」。黃色 = 開放集合（候選）、藍色 = 已關閉、綠色 = 最短徑。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">A* 迷宮搜尋</span><span class="d">滑鼠操作：設定起點／終點／畫牆</span></div>
+  <div class="bd">
+    <div class="controls">
+      <button class="btn" id="c5-setS">設起點</button>
+      <button class="btn" id="c5-setT">設終點</button>
+      <button class="btn" id="c5-wall">畫牆/清除</button>
+      <button class="btn" id="c5-rand">亂數障礙</button>
+      <button class="btn" id="c5-clear">清空</button>
+      <label>啟發式
+        <select id="c5-heur">
+          <option value="man">曼哈頓距離 h(n)</option>
+          <option value="zero">h(n)=0（退化成 Dijkstra）</option>
+        </select>
+      </label>
+      <button class="btn primary" id="c5-go">▶ 執行 A*</button>
+    </div>
+    <canvas id="c5-grid" style="height:330px;cursor:pointer" class="demo-canvas"></canvas>
+    <div id="c5-gstatus" class="statusline"></div>
+    <div id="c5-gplayer"></div>
+    <p class="small" id="c5-gstat"></p>
+  </div>
+</div>
+
+<div class="example">
+  <strong>比較：</strong>同樣的迷宮，切換「h(n)=0」再執行一次——A* 退化為 Dijkstra，展開的格子明顯更多。
+  啟發式給你「看得見目標」的優勢。
+</div>
+
+<div class="pagenav">
+  <a href="04-recursion.html">← 04 遞迴法</a>
+  <a href="06-divide.html">06 分割擊破法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 05 搜尋法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, PALETTE = AG.PALETTE;
+
+  /* ===== 05.1 DFS / BFS ===== */
+  const NODES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const POS = {
+    A: [120, 60], B: [240, 60], C: [370, 60],
+    D: [90, 200], E: [250, 115], F: [410, 200],
+    G: [150, 290], H: [330, 290]
+  };
+  const EDGES = [['A', 'B'], ['A', 'C'], ['B', 'D'], ['B', 'E'], ['C', 'F'], ['D', 'G'], ['E', 'F'], ['E', 'H'], ['F', 'H']];
+  const ADJ = {};
+  NODES.forEach(n => ADJ[n] = []);
+  EDGES.forEach(([a, b]) => { ADJ[a].push(b); ADJ[b].push(a); });
+
+  const gCv = $('#c5-graph'), gSt = $('#c5-status');
+  const gPlayer = new AG.Player({ render: drawSearch, speed: 420 });
+
+  function simSearch(mode) {
+    const frames = [];
+    const visited = new Set(), inFront = new Set();
+    const cont = ['A']; inFront.add('A');
+    const snap = (cur, msg) => frames.push({ order: [...visited], front: [...cont], cur, msg });
+    snap('A', mode === 'dfs' ? '從 A 開始：壓入堆疊' : '從 A 開始：加入佇列');
+    while (cont.length) {
+      const v = mode === 'dfs' ? cont.pop() : cont.shift();
+      if (visited.has(v)) { continue; }        // 重複加入，略過
+      visited.add(v); inFront.delete(v);
+      snap(v, `${mode === 'dfs' ? 'DFS' : 'BFS'} 拜訪 <b>${v}</b>（第 ${visited.size} 個）`);
+      const fresh = ADJ[v].filter(nb => !visited.has(nb) && !inFront.has(nb));
+      for (const nb of fresh) { cont.push(nb); inFront.add(nb); }
+      if (fresh.length) snap(v, `${v} 的鄰居 ${fresh.join('、')} 被加入${mode === 'dfs' ? '堆疊' : '佇列'}`);
+    }
+    return frames;
+  }
+
+  function drawSearch(step) {
+    const ctx = gCv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = gCv.clientWidth || 640, H = gCv.clientHeight || 300;
+    gCv.width = W * dpr; gCv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    EDGES.forEach(([a, b]) => {
+      ctx.strokeStyle = '#c3cad6'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(POS[a][0], POS[a][1]); ctx.lineTo(POS[b][0], POS[b][1]); ctx.stroke();
+    });
+    const n = NODES.length;
+    const colOf = node => {
+      const i = step.order.indexOf(node);
+      if (i < 0) return '#d7dde6';
+      const t = n <= 1 ? 0 : i / (n - 1);
+      return `hsl(${210 - t * 30}, ${65 - t * 20}%, ${80 - t * 38}%)`;
+    };
+    NODES.forEach(node => {
+      const [x, y] = POS[node];
+      ctx.beginPath(); ctx.arc(x, y, 19, 0, 7);
+      ctx.fillStyle = colOf(node); ctx.fill(); ctx.strokeStyle = '#8b94a3'; ctx.lineWidth = 1.5; ctx.stroke();
+      if (step.front.includes(node) && (step.order.indexOf(node) < 0)) {
+        ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 24, 0, 7); ctx.stroke();
+      }
+      if (node === step.cur) {
+        ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(x, y, 19, 0, 7); ctx.fill(); ctx.stroke();
+      }
+      ctx.fillStyle = node === step.cur ? '#d97706' : (step.order.includes(node) ? '#0b5cad' : '#334155');
+      ctx.font = 'bold 14px ui-monospace,monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(node, x, y);
+      const i = step.order.indexOf(node);
+      if (i >= 0) { ctx.fillStyle = '#475569'; ctx.font = '10px ui-monospace,monospace'; ctx.fillText('#' + i, x, y - 26); }
+    });
+    gSt.innerHTML = `${step.msg}<br><span style="color:#475569">拜訪順序：${step.order.join(' → ') || '—'}</span><br>${step.front.length ? `待探索：<b>${step.front.join(', ')}</b>` : '已探索完畢 ✔'}`;
+  }
+
+  let curMode = 'dfs';
+  document.querySelectorAll('input[name="c5-mode"]').forEach(rb => {
+    rb.addEventListener('change', () => { if (rb.checked) { curMode = rb.value; $('#c5-run').click(); } });
+  });
+  $('#c5-run').addEventListener('click', () => {
+    gPlayer.setFrames(simSearch(curMode));
+    if (!gPlayer.boxEl.isConnected) $('#c5-player').append(gPlayer.boxEl);
+  });
+
+  /* ===== 05.2 A* ===== */
+  const COLS = 20, ROWS = 10;              // 迷宮 20×10
+  const grid = { start: null, goal: null, walls: new Set() };
+  const gC = $('#c5-grid'), gStatus = $('#c5-gstatus'), gStat = $('#c5-gstat');
+  const aPlayer = new AG.Player({ render: drawGridFrame, speed: 120 });
+
+  function cellOf(ev) {
+    const r = gC.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    const cw = r.width / COLS, ch = r.height / ROWS;
+    return { c: Math.max(0, Math.min(COLS - 1, Math.floor(x / cw))), r: Math.max(0, Math.min(ROWS - 1, Math.floor(y / ch))) };
+  }
+  const key = (r, c) => r * COLS + c;
+  let clickMode = 'wall';
+  $('#c5-setS').addEventListener('click', () => { clickMode = 'start'; });
+  $('#c5-setT').addEventListener('click', () => { clickMode = 'goal'; });
+  $('#c5-wall').addEventListener('click', () => { clickMode = 'wall'; });
+  $('#c5-clear').addEventListener('click', () => { grid.walls.clear(); grid.start = null; grid.goal = null; drawGrid(); });
+  $('#c5-rand').addEventListener('click', () => {
+    grid.walls.clear();
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+      if (Math.random() < 0.26) grid.walls.add(key(r, c));
+    if (grid.start) grid.walls.delete(grid.start);
+    if (grid.goal) grid.walls.delete(grid.goal);
+    drawGrid();
+  });
+  gC.addEventListener('click', ev => {
+    const { r, c } = cellOf(ev), k = key(r, c);
+    if (clickMode === 'start') { grid.start = k; grid.walls.delete(k); drawGrid(); }
+    else if (clickMode === 'goal') { grid.goal = k; grid.walls.delete(k); drawGrid(); }
+    else {
+      if (grid.start === k || grid.goal === k) return;
+      if (grid.walls.has(k)) grid.walls.delete(k); else grid.walls.add(k);
+      drawGrid();
+    }
+  });
+
+  // 純繪圖（無 overlay）
+  function drawGrid() { drawGridFrame(null); }
+  function gridCellSize() {
+    const r = gC.getBoundingClientRect();
+    return { cw: r.width / COLS, ch: r.height / ROWS };
+  }
+  function drawGridFrame(overlay) {
+    const ctx = gC.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = gC.clientWidth || 640, H = gC.clientHeight || 300;
+    gC.width = W * dpr; gC.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const cw = W / COLS, ch = H / ROWS;
+    function isIn(set, r, c) { return set ? set.has(key(r, c)) : false; }
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const k = key(r, c);
+      let color = '#ffffff';
+      if (grid.walls.has(k)) color = '#334155';
+      else if (overlay) {
+        if (overlay.pathSet && overlay.pathSet.has(k)) color = '#bbf7d0';
+        else if (overlay.closedSet && overlay.closedSet.has(k)) color = '#dbeafe';
+        else if (overlay.openSet && overlay.openSet.has(k)) color = '#fef3c7';
+      }
+      ctx.fillStyle = color;
+      ctx.fillRect(c * cw, r * ch, cw, ch);
+      ctx.strokeStyle = '#e3e8ef'; ctx.lineWidth = 1; ctx.strokeRect(c * cw, r * ch, cw, ch);
+      if (overlay && overlay.fHash) {
+        const gv = overlay.gHash.get(k), hv = overlay.hHash.get(k);
+        if ((overlay.closedSet.has(k) || overlay.openSet.has(k)) && isFinite(gv)) {
+          ctx.fillStyle = '#64748b'; ctx.font = `${Math.max(7, cw * .24)}px ui-monospace,monospace`;
+          ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+          ctx.fillText(gv, c * cw + 2, r * ch + 1);
+          ctx.textAlign = 'right'; ctx.fillText(hv, (c + 1) * cw - 2, r * ch + 1);
+          ctx.textAlign = 'center';
+          ctx.fillText(gv + hv, c * cw + cw / 2, (r + 1) * ch - Math.max(7, cw * .28));
+        }
+      }
+    }
+    const marks = [[grid.start, '#0b5cad'], [grid.goal, '#dc2626']];
+    for (const [k, col] of marks) {
+      if (k == null) continue;
+      const r = Math.floor(k / COLS), c = k % COLS;
+      ctx.fillStyle = col; ctx.font = `bold ${Math.min(16, cw * .6)}px ui-monospace,monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(k === grid.start ? 'S' : 'G', c * cw + cw / 2, r * ch + ch / 2 + 1);
+    }
+    if (overlay && overlay.cur != null) {
+      const r = Math.floor(overlay.cur / COLS), c = overlay.cur % COLS;
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3;
+      ctx.strokeRect(c * cw, r * ch, cw, ch);
+    }
+    if (overlay) UpdateStatus(overlay);
+  }
+
+  function UpdateStatus(o) {
+    gStatus.innerHTML = o.msg + (o.done ? ' <b style="color:#0d9488">✔ 找到最短路徑！</b>' : '');
+    gStat.textContent = o.statLine || '';
+  }
+
+  function aStar(useHeur) {
+    const frames = [];
+    const s = grid.start, t = grid.goal;
+    const man = (k) => {
+      if (!useHeur) return 0;
+      const r = Math.floor(k / COLS), c = k % COLS;
+      const tr = Math.floor(t / COLS), tc = t % COLS;
+      return Math.abs(r - tr) + Math.abs(c - tc);
+    };
+    const open = new Map();             // key -> f
+    const gH = new Map(), hH = new Map(), came = new Map();
+    const closed = new Set();
+    open.set(s, 0);
+    gH.set(s, 0); hH.set(s, man(s));
+
+    function popMin() {
+      let best = null, bestF = Infinity, bestG = -Infinity;
+      for (const [k, f] of open) {
+        if (f < bestF || (f === bestF && gH.get(k) > bestG)) { best = k; bestF = f; bestG = gH.get(k); }
+      }
+      return best;
+    }
+    function snap(cur, msg) {
+      frames.push({ openSet: new Set(open.keys()), closedSet: new Set(closed), gHash: new Map(gH), hHash: new Map(hH), cur, msg });
+    }
+    let cur = null;
+    while (open.size) {
+      cur = popMin();
+      snap(cur, `展開節點 g=${gH.get(cur)}，f=g+h=${gH.get(cur)}+${hH.get(cur)}`);
+      if (cur === t) break;
+      open.delete(cur); closed.add(cur);
+      const r = Math.floor(cur / COLS), c = cur % COLS;
+      const nbs = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+      for (const [nr, nc] of nbs) {
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        const k = key(nr, nc);
+        if (grid.walls.has(k) || closed.has(k)) continue;
+        const ng = gH.get(cur) + 1;
+        if (!gH.has(k) || ng < gH.get(k)) {
+          gH.set(k, ng); hH.set(k, man(k)); came.set(k, cur); open.set(k, ng + man(k));
+        }
+      }
+    }
+    let nClosed = closed.size, nOpen = open.size;
+    if (cur === t) {
+      const path = [];
+      let k = t;
+      while (k != null) { path.push(k); k = came.get(k); }
+      const pathSet = new Set(path);
+      frames.push({ openSet: new Set(open.keys()), closedSet: new Set(closed), gHash: new Map(gH), hHash: new Map(hH), cur: t,
+        msg: `抵達終點！路徑長度 = ${path.length - 1} 步`, done: true, pathSet });
+      const final = {
+        openSet: new Set(), closedSet: new Set(closed), gHash: new Map(gH), hHash: new Map(hH), cur: null,
+        msg: '✔ 完成', done: true, pathSet,
+        statLine: `展開節點 ${nClosed} 個 · 路徑 ${path.length - 1} 步`
+      };
+      frames.push(final);
+    } else {
+      frames.push({ openSet: new Set(), closedSet: new Set(closed), gHash: new Map(gH), hHash: new Map(hH), cur: null, msg: '沒有路徑可達終點（牆圍死）', statLine: `展開節點 ${nClosed} 個` });
+    }
+    return frames;
+  }
+
+  $('#c5-go').addEventListener('click', () => {
+    if (grid.start == null || grid.goal == null) { gStatus.innerHTML = '<b>請先設定起點與終點</b>（點「設起點」再點格子，或反之）。'; return; }
+    const useHeur = $('#c5-heur').value === 'man';
+    gPlayer.setFrames(aStar(useHeur));
+    if (!gPlayer.boxEl.isConnected) $('#c5-gplayer').append(gPlayer.boxEl);
+  });
+
+  // 初始
+  grid.start = key(ROWS - 1, 0); grid.goal = key(0, COLS - 1);
+  for (let c = 3; c < 12; c++) grid.walls.add(key(2, c));
+  for (let c = 10; c < 17; c++) grid.walls.add(key(5, c));
+  for (let c = 1; c < 7; c++) grid.walls.add(key(0, c));
+  grid.walls.delete(grid.goal);
+  drawGrid();
+
+  setTimeout(() => { /* 讓畫布在初次 layout 後再畫一遍 */ drawGrid(); }, 60);
+  window.addEventListener('resize', () => { if (aPlayer.frames.length === 0) drawGrid(); });
+})();
+</script>
+</body>
+</html>

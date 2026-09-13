@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 複雜度分析 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip on" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>01 複雜度分析 <span class="sub">Big-O：演算法到底有多快？</span></h1>
+<p class="lead">同樣的輸入，不同的演算法可能快上 <b>十億倍</b>。複雜度分析讓我們不寫程式、不量秒數，也能預測一個演算法在輸入變大之後會變得多慢。</p>
+
+<h2>01.1 為什麼要分析複雜度？</h2>
+<p>判斷一個程式「快不快」，不能用秒數——因為同一個程式在不同機器上跑的快慢不同。所以我們改用<b>操作次數</b>來衡量：輸入大小為 <code>n</code> 時，演算法大約執行了多少次基本運算。</p>
+<pre><code># 線性搜尋：檢查 n 個元素，最多 n 次
+def linear_search(a, key):
+    for x in a:            # ← 這個迴圈最多跑 n 次
+        if x == key:
+            return True
+    return False</code></pre>
+<p>當 <code>n</code> 從 1000 變到 100 萬時，這個程式的操作次數也大約放大 1000 倍——這就透過 <code>O(n)</code> 這個記號來表達。</p>
+
+<div class="theorem">
+  <div class="kicker">定義</div>
+  <strong>Big-O（上界）：</strong>我們寫 <b>f(n) = O(g(n))</b>，若存在常數 c&gt;0 與 n₀，使得對所有 n ≥ n₀，都有<br>
+  <code>0 ≤ f(n) ≤ c · g(n)</code>。<br>
+  <strong>Big-Ω（下界）：</strong>f(n) = Ω(g(n))，若存在 c&gt;0、n₀，使 f(n) ≥ c·g(n) 對所有 n ≥ n₀ 成立。<br>
+  <strong>Big-Θ（同階）：</strong>f(n) = Θ(g(n))，若同時 f(n) = O(g(n)) 且 f(n) = Ω(g(n))，表示兩者長得一樣快。
+</div>
+
+<div class="note">
+  <strong>直覺：</strong>O 是「最多不超過」、Ω 是「至少也這麼多」、Θ 是「剛好這個量級」。
+  平時說「這個演算法是 O(n²)」，意思是操作次數頂多跟 n² 成正比。
+</div>
+
+<h2>01.2 體驗：成長曲線</h2>
+<p>不同複雜度在 <code>n</code> 小時看不出差別，但 <code>n</code> 一到 30～50，指數級曲線直接衝出螢幕。拖曳 <code>n</code> 放大範圍，並切換對數座標觀察「誰壓過誰」。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">成長曲線 · 互動圖</span><span class="d">常見複雜度函數 vs. 輸入大小 n</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>n 最大範圍 <input id="c1-maxn" type="range" min="5" max="100" value="20"> <span id="c1-maxn-v">20</span></label>
+      <label><input id="c1-log" type="checkbox"> 對數縱軸 (log₁₀)</label>
+    </div>
+    <canvas id="c1-chart" style="height:340px" class="demo-canvas"></canvas>
+    <div id="c1-hover" class="small" style="min-height:20px;margin-top:6px"></div>
+    <div class="legend">
+      <span><i style="background:#0b5cad"></i>1 (常數)</span>
+      <span><i style="background:#0d9488"></i>log₂ n</span>
+      <span><i style="background:#d97706"></i>n</span>
+      <span><i style="background:#7c3aed"></i>n·log₂ n</span>
+      <span><i style="background:#db2777"></i>n²</span>
+      <span><i style="background:#059669"></i>n³</span>
+      <span><i style="background:#dc2626"></i>2ⁿ</span>
+      <span><i style="background:#ca8a04"></i>n!</span>
+    </div>
+    <p class="small">「1」永遠躺平、log 慢速爬升、多項式加速成長、指數與階乘最後遙遙領先。
+      演算法設計的目標，就是把實際問題從中下方的曲線逼近到「可行」的範圍。</p>
+  </div>
+</div>
+
+<h2>01.3 常見複雜度的等級</h2>
+<table class="std">
+  <tr><th>記號</th><th>名稱</th><th>典型例子</th><th>n=10⁶ 的可行度</th></tr>
+  <tr><td>O(1)</td><td>常數</td><td>雜湊表取值、陣列索引</td><td>瞬間</td></tr>
+  <tr><td>O(log n)</td><td>對數</td><td>二元搜尋、平衡樹</td><td>約 20 步</td></tr>
+  <tr><td>O(n)</td><td>線性</td><td>線性搜尋、掃過一遍</td><td>百萬步，輕鬆</td></tr>
+  <tr><td>O(n log n)</td><td>線性對數</td><td>Merge Sort、快速排序平均</td><td>二千萬步，可接受</td></tr>
+  <tr><td>O(n²)</td><td>平方</td><td>氣泡排序、雙層迴圈</td><td>10¹² 步，很慢</td></tr>
+  <tr><td>O(n³)</td><td>立方</td><td>樸素矩陣相乘、三層迴圈</td><td>10¹⁸ 步，幾乎不可能</td></tr>
+  <tr><td>O(2ⁿ)</td><td>指數</td><td>窮舉所有子集合</td><td>連 n=40 都跑不完</td></tr>
+  <tr><td>O(n!)</td><td>階乘</td><td>窮舉所有排列（旅行推銷員）</td><td>n=20 已經天文數字</td></tr>
+</table>
+
+<h2>01.4 體驗：數一數操作次數</h2>
+<p>選一種寫法，看它在輸入 <code>n</code> 時實際執行了多少次內層操作。右側的倍數表則直接顯示——<b>每當 n 加倍，各種複雜度的步數分別變成幾倍</b>（2 倍、4 倍、8 倍、還是直接爆炸）。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">操作次數 · 互動計數</span><span class="d">四種程式在輸入大小 n 時的內層操作次數</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>輸入大小 n <input id="c1-n" type="range" min="2" max="30" value="12"> <span id="c1-n-v">12</span></label>
+      <label><input id="c1-bars-log" type="checkbox" checked> 對數縱軸</label>
+    </div>
+    <canvas id="c1-bars" style="height:230px" class="demo-canvas"></canvas>
+    <div class="legend">
+      <span><i style="background:#0b5cad"></i>線性搜尋 n 次</span>
+      <span><i style="background:#d97706"></i>氣泡排序 n(n−1)/2 次</span>
+      <span><i style="background:#db2777"></i>矩陣相乘 n³ 次</span>
+      <span><i style="background:#dc2626"></i>費氏數列遞迴 ≈2ⁿ(個呼叫)</span>
+    </div>
+    <h3>n 加倍時，步數成長幾倍？</h3>
+    <table class="std" id="c1-mul">
+      <tr><th>n</th><th>n（線性）</th><th>n²/2（氣泡）</th><th>n³（矩陣）</th><th>2ⁿ（費氏）</th><th>n!（排列）</th></tr>
+    </table>
+    <p class="small">留意最後三列：n 從 20 → 40 → 80 時，2ⁿ 與 n! 的數字立刻超過人類能「計時」的範圍——這就是指數爆炸 (exponential explosion)。</p>
+  </div>
+</div>
+
+<h2>01.5 如何寫出遞迴關係</h2>
+<p>著名例子：費氏數列 <code>F(n)=F(n−1)+F(n−2)</code>。它的時間複雜度滿足遞迴關係</p>
+<pre><code>T(n) = T(n−1) + T(n−2) + 1      （每次呼叫多了 1 個常數＋兩個子呼叫）
+解出：T(n) = Θ(2ⁿ)               （指數！太慢了）</code></pre>
+<p>同一問題改用「從底部填表」的動態規劃後，只要 <code>O(n)</code>（見第 07 章）。這就是複雜度分析最重要的用途：<b>逼我們換方法</b>。</p>
+
+<div class="note">
+  <div class="kicker">判斷迴圈複雜度的小技巧</div>
+  一層迴圈大致 n 次 → O(n)；兩層各自跑 n 次 → O(n²)；三層 → O(n³)；
+  每層只跑一半（n/2）仍是 O(n)；每次砍半（二分搜尋）才是 O(log n)。
+</div>
+
+<div class="pagenav">
+  <a href="index.html">← 課程首頁</a>
+  <a href="02-brute.html">02 暴力法與列舉 →</a>
+</div>
+<div class="foot">演算法互動教材 · 01 複雜度分析</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  // ---- 01.2 成長曲線 ----
+  const chart = AG.$('#c1-chart');
+  const series = [
+    { name: '1',       color: '#0b5cad', fn: n => 1 },
+    { name: 'log₂n',   color: '#0d9488', fn: n => Math.log2(Math.max(n, 1)) },
+    { name: 'n',       color: '#d97706', fn: n => n },
+    { name: 'nlog₂n',  color: '#7c3aed', fn: n => n * Math.log2(Math.max(n, 1)) },
+    { name: 'n²',      color: '#db2777', fn: n => n * n },
+    { name: 'n³',      color: '#059669', fn: n => Math.pow(n, 3) },
+    { name: '2ⁿ',      color: '#dc2626', fn: n => Math.pow(2, n) },
+    { name: 'n!',      color: '#ca8a04', fn: n => { let f = 1; for (let i = 2; i <= n; i++) f *= i; return f; } },
+  ];
+  const maxnInput = AG.$('#c1-maxn'), maxnV = AG.$('#c1-maxn-v');
+  const logCk = AG.$('#c1-log'), hover = AG.$('#c1-hover');
+  function redrawChart() {
+    AG.lineChart(chart, series, { maxN: +maxnInput.value, logY: logCk.checked });
+  }
+  maxnInput.addEventListener('input', () => { maxnV.textContent = maxnInput.value; redrawChart(); });
+  logCk.addEventListener('change', redrawChart);
+  AG.chartHover(chart, hover);
+  redrawChart();
+
+  // ---- 01.4 操作計數 ----
+  const nInput = AG.$('#c1-n'), nV = AG.$('#c1-n-v'), barsLog = AG.$('#c1-bars-log');
+  const barCv = AG.$('#c1-bars');
+  const mulRows = [5, 10, 20, 40, 80];
+  const mulBody = AG.$('#c1-mul');
+
+  function fibCalls(n) { // 遞迴呼叫次數 T(n)=T(n-1)+T(n-2)+1, T(0)=T(1)=0
+    let cache = {};
+    function t(m) {
+      if (m < 2) return 0;
+      if (cache[m] != null) return cache[m];
+      cache[m] = t(m - 1) + t(m - 2) + 1;
+      return cache[m];
+    }
+    return t(n);
+  }
+  function stepCounts(n) {
+    const linear = n;                       // 最多 n 次比較
+    const bubble = n * (n - 1) / 2;         // 內層比較數
+    const matrix = Math.pow(n, 3);          // 三層迴圈
+    const fib = fibCalls(n);                // 費氏遞迴呼叫數
+    return [linear, bubble, matrix, fib];
+  }
+  function redrawBars() {
+    const n = +nInput.value; nV.textContent = n;
+    const c = stepCounts(n);
+    const colors = ['rgba(11,92,173,.8)', 'rgba(217,119,6,.8)', 'rgba(219,39,119,.8)', 'rgba(220,38,38,.8)'];
+    const labels = ['線性\n' , '氣泡', '矩陣', '費氏'];
+    AG.bars(barCv, c, { colors, labels, value: true, logY: barsLog.checked });
+    // 手工對數高度：bars() 不支援，改用手動版本
+  }
+  function redrawMul() {
+    mulBody.innerHTML = '<tr><th>n</th><th>n</th><th>n²/2</th><th>n³</th><th>2ⁿ</th><th>n!</th></tr>';
+    for (const n of mulRows) {
+      const tr = document.createElement('tr');
+      const fact = (m) => { let f = 1; for (let i = 2; i <= m; i++) f *= i; return f; };
+      const cells = [
+        n, n, n * n / 2, Math.pow(n, 3), Math.pow(2, n), fact(n)
+      ];
+      tr.innerHTML = cells.map((v, i) => i === 0 ? `<td>${v}</td>` : `<td>${AG.fmt(v)}</td>`).join('');
+      mulBody.append(tr);
+    }
+  }
+  nInput.addEventListener('input', redrawBars);
+  barsLog.addEventListener('change', redrawBars);
+  redrawBars(); redrawMul();
+})();
+</script>
+</body>
+</html>

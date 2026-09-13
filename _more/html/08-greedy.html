@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08 貪婪法 -- 演算法互動教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html"><span class="logo">λ</span> 演算法互動教材</a>
+    <nav class="chips">
+      <a class="chip" href="index.html">首頁</a>
+      <a class="chip" href="01-complexity.html">01 複雜度</a>
+      <a class="chip" href="02-brute.html">02 列舉</a>
+      <a class="chip" href="03-iteration.html">03 迭代</a>
+      <a class="chip" href="04-recursion.html">04 遞迴</a>
+      <a class="chip" href="05-search.html">05 搜尋</a>
+      <a class="chip" href="06-divide.html">06 分割</a>
+      <a class="chip" href="07-dp.html">07 動態規劃</a>
+      <a class="chip on" href="08-greedy.html">08 貪婪</a>
+      <a class="chip" href="09-random.html">09 隨機</a>
+      <a class="chip" href="10-applications.html">10 應用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>08 貪婪法 <span class="sub">每一步都選「眼前最佳」，希望全域也最佳</span></h1>
+<p class="lead">貪婪法不做後悔能做的事：每一步只顧「現在看來最好的選擇」，然後繼續走下去。
+  有的問題（找零錢某些幣制、Huffman、最小生成樹）這樣就能得到全域最佳；有些則不能——所以貪婪法最重要的課題是<b>判斷它會不會失敗</b>。</p>
+
+<h2>08.1 找零錢：貪婪常常對，但偶爾會「輸」</h2>
+<p>先用<b>最大的硬幣</b>湊，能拿就拿。幣值 {1, 3, 4} 時湊 6：貪婪先拿 4，剩 2 → 只能拿 1、1，共 <b>3 枚</b>；
+  其實最佳是 <b>3 + 3 只有 2 枚</b>。這個反例說明貪婪「眼前最好」不一定等於「整體最好」。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">貪婪找零 vs 最佳解</span><span class="d">黃 = 貪婪的一步一步；數字下方顯示最佳枚數</span></div>
+  <div class="bd">
+    <div class="controls">
+      <label>幣值（逗號分隔）<input id="c8-coins" type="text" value="1,3,4" style="max-width:120px"></label>
+      <label>金額 <input id="c8-amt" type="range" min="1" max="30" value="6"> <span id="c8-amt-v">6</span></label>
+      <button class="btn primary" id="c8-crun">執行</button>
+    </div>
+    <div id="c8-cchips" class="arr"></div>
+    <div id="c8-cstatus" class="statusline"></div>
+    <div id="c8-cplayer"></div>
+  </div>
+</div>
+
+<h2>08.2 哈夫曼編碼 Huffman：把最常出現的字元編最短</h2>
+<p>把每個字元當成葉節點，權重 = 出現次數；<b>每次合併最小的兩個</b>，形成一棵二元樹。
+  樹上左邊寫 0、右邊寫 1，每個字元的編碼就是「從根走到它的 0/1 串」——出現越頻繁，路徑越短。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">Huffman 樹建構動畫</span><span class="d">每一列 = 一次合併；結束後顯示完整編碼表</span></div>
+  <div class="bd">
+    <div class="controls">
+      <textarea id="c8-hinput" rows="5" style="width:100%;max-width:100%;font:13px ui-monospace,monospace">a:5
+b:9
+c:12
+d:13
+e:16
+f:45</textarea>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="c8-hrun">建構 Huffman 樹</button>
+      <span class="small">每行一筆：字元:權重</span>
+    </div>
+    <div id="c8-hforest" class="arr" style="flex-wrap:wrap"></div>
+    <div id="c8-hstatus" class="statusline"></div>
+    <div id="c8-hplayer"></div>
+    <div id="c8-htree" style="display:none"></div>
+    <table class="std" id="c8-htable" style="display:none"></table>
+    <canvas id="c8-hbars" style="height:110px" class="demo-canvas"></canvas>
+    <p class="small">比較「固定長度編碼」與 Huffman 的加權平均編碼長度，以及壓縮後的總位元數。</p>
+  </div>
+</div>
+
+<h2>08.3 最小生成樹 Kruskal：每次都挑「最便宜且不形成環」的邊</h2>
+<p>要讓 n 個城市連通、且總成本最低，就是最小生成樹 (MST)。
+  Kruskal 的貪婪策略：<b>每次看最便宜的邊，只要它在圖中不形成環就選</b>（用併查集 union-find 檢查），直到選滿 n−1 條。</p>
+
+<div class="card">
+  <div class="hd"><span class="t">Kruskal MST 動畫</span><span class="d">綠 = 選取（併入），紅虛線 = 形成環被捨棄</span></div>
+  <div class="bd">
+    <div class="controls">
+      <button class="btn primary" id="c8-krun">重新執行</button>
+      <span class="small" id="c8-kmeta">共 9 條邊 · 需選 5 條</span>
+    </div>
+    <canvas id="c8-kruskal" style="height:320px" class="demo-canvas"></canvas>
+    <div id="c8-kstatus" class="statusline"></div>
+    <div id="c8-kplayer"></div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="kicker">什麼時候貪婪才正確？</div>
+  貪婪要保證全域最佳，通常需要「貪婪選擇性質」（Greedy-choice property）+「最佳子結構」。
+  零錢（一般幣制）、背包（分數版）會出錯；Huffman、MST、活動選擇則被證明正確——判斷正確性正是貪婪法最重要的一課。
+</div>
+
+<div class="pagenav">
+  <a href="07-dp.html">← 07 動態規劃法</a>
+  <a href="09-random.html">09 隨機演算法 →</a>
+</div>
+<div class="foot">演算法互動教材 · 08 貪婪法</div>
+</div>
+
+<script src="assets/algo.js"></script>
+<script>
+'use strict';
+(function () {
+  const $ = AG.$, el = AG.el, fmt = AG.fmt;
+
+  /* ===== 08.1 找零錢 ===== */
+  const coinsIn = $('#c8-coins'), amtIn = $('#c8-amt'), amtV = $('#c8-amt-v'), cRun = $('#c8-crun');
+  const cChips = $('#c8-cchips'), cSt = $('#c8-cstatus');
+  const cPlayer = new AG.Player({ render: fr => drawCoins(fr), speed: 700 });
+  let cCoinSet = [];
+
+  function parseCoins() {
+    cCoinSet = [...new Set(coinsIn.value.split(/[,，\s]+/).map(x => x | 0).filter(x => x > 0))].sort((a, b) => b - a);
+    if (!cCoinSet.length) cCoinSet = [1, 3, 4];
+  }
+  function dpMinCoins(target) {
+    const INF = 1e9, dp = new Array(target + 1).fill(INF); dp[0] = 0;
+    for (let w = 1; w <= target; w++) for (const c of cCoinSet) if (w >= c) dp[w] = Math.min(dp[w], dp[w - c] + 1);
+    return dp[target];
+  }
+  function greedyPicks(target) {
+    const picks = []; let left = target;
+    const sorted = [...cCoinSet].sort((a, b) => b - a);
+    for (const c of sorted) while (left >= c) { picks.push(c); left -= c; }
+    return { picks, left };
+  }
+  function coinFrames(target) {
+    const frames = [];
+    const { picks, left } = greedyPicks(target);
+    const best = dpMinCoins(target);
+    frames.push({ picks: [], left, best, msg: `幣值 ${cCoinSet.join('、')}，要湊 ${target}。貪婪先拿最大面額。` });
+    for (let i = 0; i < picks.length; i++) {
+      frames.push({ picks: picks.slice(0, i + 1), left: target - sum(picks.slice(0, i + 1)), best, whole: picks, msg: `拿一枚 ${picks[i]} → 已拿 ${picks.slice(0, i + 1).join('+')}，剩 ${target - sum(picks.slice(0, i + 1))}` });
+    }
+    const greedyTotal = picks.length;
+    const ok = greedyTotal === best && left === 0;
+    frames.push({ picks, left, best, done: true, msg: ok ? `✔ 貪婪 ${greedyTotal} 枚 = 最佳解。` : `✘ 貪婪 ${greedyTotal} 枚，但最佳只要 ${best} 枚（${greedyStr(best, target)}）→ 反例！` });
+    return frames;
+  }
+  function sum(a) { return a.reduce((x, y) => x + y, 0); }
+  function greedyStr(best, target) {
+    // 用 DP 找出一個最佳組合展示
+    const dp = [], pick = [];
+    const INF = 1e9;
+    const sorted = [...cCoinSet].sort((a, b) => b - a);
+    for (let w = 0; w <= target; w++) { dp[w] = INF; pick[w] = null; }
+    dp[0] = 0;
+    for (let w = 1; w <= target; w++) for (const c of sorted) if (w >= c && dp[w - c] + 1 < dp[w]) { dp[w] = dp[w - c] + 1; pick[w] = c; }
+    const seq = []; let t = target;
+    while (t > 0 && pick[t]) { seq.push(pick[t]); t -= pick[t]; }
+    return seq.join('+');
+  }
+  function drawCoins(fr) {
+    cChips.innerHTML = '';
+    if (fr.picks && fr.picks.length) fr.picks.forEach(c => cChips.append(el('span', { class: 'hot', style: 'border:2px solid #f59e0b;font-weight:700' }, `${c} 元`)));
+    else cChips.append(el('span', { class: 'small' }, '（尚未選幣）'));
+    if (fr.done) {
+      const pickedStr = fr.picks.join('+');
+      const optStr = greedyStr(fr.best, amtIn.value | 0);
+      const bad = fr.picks.length > fr.best;
+      cChips.append(el('span', { class: 'small', style: 'margin-left:8px' },
+        `　貪婪 ${pickedStr}（${fr.picks.length} 枚）　vs　最佳 ${optStr}（${fr.best} 枚）`));
+    }
+    cSt.innerHTML = fr.msg;
+  }
+  function setupCoins() {
+    parseCoins();
+    amtV.textContent = amtIn.value;
+    cPlayer.setFrames(coinFrames(amtIn.value | 0));
+    if (!cPlayer.boxEl.isConnected) $('#c8-cplayer').append(cPlayer.boxEl);
+  }
+  amtIn.addEventListener('input', () => amtV.textContent = amtIn.value);
+  cRun.addEventListener('click', setupCoins);
+  setupCoins();
+
+  /* ===== 08.2 Huffman ===== */
+  const hIn = $('#c8-hinput'), hRun = $('#c8-hrun');
+  const hForest = $('#c8-hforest'), hSt = $('#c8-hstatus'), hTree = $('#c8-htree');
+  const hTable = $('#c8-htable'), hBars = $('#c8-hbars');
+  const hPlayer = new AG.Player({ render: fr => drawHuff(fr), speed: 900 });
+  let hFinal = null;
+
+  function parseHuff() {
+    const lines = hIn.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const items = [];
+    for (const line of lines) {
+      const m = line.match(/^(.{1,4}?)\s*[:：=]?\s*(\d+)$/);
+      if (m) items.push({ ch: m[1].trim(), f: +m[2] });
+    }
+    if (!items.length) {
+      items.push({ ch: 'a', f: 5 }, { ch: 'b', f: 9 }, { ch: 'c', f: 12 }, { ch: 'd', f: 13 }, { ch: 'e', f: 16 }, { ch: 'f', f: 45 });
+      hIn.value = 'a:5\nb:9\nc:12\nd:13\ne:16\nf:45';
+    }
+    return items;
+  }
+  function huffmanFrames() {
+    const items = parseHuff();
+    const forest = items.map(it => ({ ch: it.ch, f: it.f, l: null, r: null }));
+    const frames = [];
+    frames.push({ forest: forest.map(n => ({ ch: n.ch, f: n.f })), msg: '初始：每個字元自成一個節點，權重 = 出現次數。' });
+    while (forest.length > 1) {
+      forest.sort((a, b) => a.f - b.f || (a.ch || '').localeCompare(b.ch || ''));
+      const x = forest.shift(), y = forest.shift();
+      const node = { ch: '', f: x.f + y.f, l: x, r: y };
+      forest.push(node);
+      frames.push({
+        forest: forest.map(n => ({ ch: n.ch, f: n.f })),
+        merged: [x.ch, y.ch], newF: node.f,
+        msg: `合併 ${x.ch || '內節點'}(${x.f}) 與 ${y.ch || '內節點'}(${y.f}) → 新內節點權重 ${node.f}`
+      });
+    }
+    // 編碼
+    const codes = {};
+    (function walk(n, code) {
+      if (n.l == null) { codes[n.ch] = code; return; }
+      walk(n.l, code + '0'); walk(n.r, code + '1');
+    })(forest[0], '');
+    const total = items.reduce((a, it) => a + it.f, 0);
+    const huffBits = items.reduce((a, it) => a + it.f * codes[it.ch].length, 0);
+    const m = Math.max(3, Math.ceil(Math.log2(items.length)));
+    const fixedBits = total * m;
+    hFinal = { codes, items, total, huffBits, fixedBits, m, root: forest[0] };
+    frames.push({ forest: [], final: true, msg: `✔ 完成：加權編碼長度 = ${huffBits} bits（固定長度要 ${fixedBits}）` });
+    return frames;
+  }
+  function huffTreeHTML(node) {
+    if (node.l == null) return `<span class="htnode"><span style="font-weight:700">${node.ch}</span><span>${node.f}</span></span>`;
+    return `<div class="htnode"><b>${node.f}</b><div class="htkids">${huffTreeHTML(node.l)}${huffTreeHTML(node.r)}</div></div>`;
+  }
+  function drawHuff(fr) {
+    hForest.innerHTML = '';
+    fr.forest.forEach(n => {
+      let cls = '';
+      if (fr.merged && fr.merged.includes(n.ch)) cls = 'hot';
+      hForest.append(el('span', { class: cls || '', style: cls ? 'border:2px solid #d97706;font-weight:700' : '' }, `${n.ch ? n.ch + ':' : ''}${n.f}`));
+    });
+    if (fr.final && hFinal) {
+      hTree.style.display = 'block';
+      hTree.className = 'htree';
+      hTree.innerHTML = '<h3>最後的 Huffman 樹（內節點只記權重）</h3>' + huffTreeHTML(hFinal.root);
+      hTable.style.display = 'table';
+      hTable.innerHTML = '<tr><th>字元</th><th>次數</th><th>編碼</th><th>長度</th><th>位元數</th></tr>' + hFinal.items.map(it =>
+        `<tr><td>${it.ch}</td><td>${it.f}</td><td><code>${hFinal.codes[it.ch]}</code></td><td>${hFinal.codes[it.ch].length}</td><td>${it.f * hFinal.codes[it.ch].length}</td></tr>`).join('');
+      AG.bars(hBars, [hFinal.huffBits, hFinal.fixedBits], { colors: ['#0d9488', '#d97706'], labels: [`Huffman（總 ${hFinal.total} 字元）`, `固定 ${hFinal.m} bits`], value: true });
+    }
+    hSt.innerHTML = fr.msg;
+  }
+  function setupHuff() {
+    hPlayer.setFrames(huffmanFrames());
+    if (!hPlayer.boxEl.isConnected) $('#c8-hplayer').append(hPlayer.boxEl);
+  }
+  hRun.addEventListener('click', setupHuff);
+  setupHuff();
+
+  /* ===== 08.3 Kruskal MST ===== */
+  const KNODES = [ [110, 80], [260, 60], [420, 80], [90, 235], [260, 260], [420, 235] ];
+  const KEDGES = [
+    [0, 1, 7], [0, 3, 5], [1, 2, 8], [1, 3, 9], [1, 4, 7],
+    [2, 4, 5], [3, 4, 15], [3, 5, 6], [4, 5, 8], [2, 5, 9]
+  ];
+  const kCv = $('#c8-kruskal'), kSt = $('#c8-kstatus'), kRun = $('#c8-krun'), kMeta = $('#c8-kmeta');
+  const kPlayer = new AG.Player({ render: fr => drawKruskal(fr), speed: 850 });
+
+  function kruskalFrames() {
+    const frames = [];
+    const edges = [...KEDGES].map((e, i) => ({ u: e[0], v: e[1], w: e[2], i })).sort((a, b) => a.w - b.w);
+    const par = KNODES.map((_, i) => i);
+    const find = x => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+    const accept = [];
+    frames.push({ checked: [], accept: [], rejected: new Set(), msg: `所有邊依權重排序：${edges.map(e => `${e.w}`).join('、')}。依序檢查。` });
+    for (const e of edges) {
+      const ru = find(e.u), rv = find(e.v);
+      if (ru === rv) {
+        frames.push({ checked: e, accept: [...accept], rejected: new Set([e.i]), msg: `邊 ${e.u}-${e.v} 權重 ${e.w}：會形成環 → 捨棄` });
+      } else {
+        par[ru] = rv;
+        accept.push(e);
+        frames.push({ checked: e, accept: [...accept], rejected: new Set(), msg: `邊 ${e.u}-${e.v} 權重 ${e.w}：不形成環 → 選取（第 ${accept.length} 條）` });
+      }
+    }
+    const total = accept.reduce((a, e) => a + e.w, 0);
+    frames.push({ checked: null, accept: [...accept], rejected: new Set(), final: true, msg: `✔ MST 權重總和 = ${total}，選了 ${accept.length} 條邊，樹中無環且連通。` });
+    return frames;
+  }
+  function drawKruskal(fr) {
+    const ctx = kCv.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = kCv.clientWidth || 640, H = kCv.clientHeight || 300;
+    kCv.width = W * dpr; kCv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const acceptSet = new Set(fr.accept.map(e => e.i));
+    KEDGES.forEach((e, idx) => {
+      const [u, v] = [KNODES[e[0]], KNODES[e[1]]];
+      const accepted = acceptSet.has(idx);
+      const rejected = fr.rejected && fr.rejected.has(idx);
+      const isChecked = fr.checked && fr.checked.i === idx;
+      ctx.lineWidth = accepted ? 4 : (rejected ? 3 : 1.6);
+      ctx.strokeStyle = accepted ? '#0d9488' : (rejected ? '#dc2626' : '#c3cad6');
+      ctx.setLineDash(rejected ? [6, 4] : []);
+      ctx.beginPath(); ctx.moveTo(u[0], u[1]); ctx.lineTo(v[0], v[1]); ctx.stroke();
+      ctx.setLineDash([]);
+      if (accepted || isChecked) {
+        ctx.fillStyle = accepted ? '#0d9488' : '#d97706';
+        ctx.font = '12px ui-monospace,monospace'; ctx.textAlign = 'center';
+        ctx.fillText(e[2], (u[0] + v[0]) / 2, (u[1] + v[1]) / 2 - 4);
+      }
+    });
+    // 節點
+    KNODES.forEach(([x, y], i) => {
+      ctx.beginPath(); ctx.arc(x, y, 14, 0, 7);
+      ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#5b6472'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#334155'; ctx.font = 'bold 12px ui-monospace,monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i), x, y + 1);
+    });
+    kSt.innerHTML = fr.msg;
+  }
+  function setupKruskal() {
+    kMeta.textContent = `共 ${KEDGES.length} 條邊 · 需選 ${KNODES.length - 1} 條`;
+    kPlayer.setFrames(kruskalFrames());
+    if (!kPlayer.boxEl.isConnected) $('#c8-kplayer').append(kPlayer.boxEl);
+  }
+  kRun.addEventListener('click', setupKruskal);
+  setupKruskal();
+})();
+</script>
+</body>
+</html>
