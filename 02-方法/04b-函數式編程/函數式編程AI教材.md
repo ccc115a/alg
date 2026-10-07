@@ -2,6 +2,8 @@
 
 * [函數式編程](https://zh.wikipedia.org/zh-tw/%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B)
 
+Monad 是一個同時實作了 map 與 flatMap 的容器。
+
 ## ccc: 請寫一套 函數式編程的教材
 
 這是一套為物件導向與命令式開發者量身打造的「函數式編程（Functional Programming, FP）實戰與心法教材」。採用「觀念轉變 $\rightarrow$ 核心四大支柱 $\rightarrow$ 高階組合技巧 $\rightarrow$ 專案級實戰」的結構，幫助學生擺頭傳統 Side Effects（副作用）的思維，寫出更強健、易測試且無 Bug 的程式碼。
