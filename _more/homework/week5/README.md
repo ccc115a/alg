@@ -6,4 +6,4 @@
 
 * Gemini 問答
     * 對話 -- https://gemini.google.com/app/091e9a86bfb5c44a
-    * 分享 -- https://share.gemini.google/omoWDWsZ7Ai9
+    * 分享 -- https://share.gemini.google/SYslwN67Np2H
