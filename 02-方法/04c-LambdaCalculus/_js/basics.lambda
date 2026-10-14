@@ -1,0 +1,28 @@
+# ==========================================
+# Lambda Calculus 範例與測試檔案
+# ==========================================
+
+# 1. 基本範例：Identity 函數與應用
+(\x. x) y
+(\x. \y. x) a b
+(\x. \y. y) a b
+
+# 2. 邱奇布林值 (Church Booleans) 定義
+TRUE = \t. \f. t
+FALSE = \t. \f. f
+
+# 3. 邏輯運算定義
+NOT = \p. \t. \f. p f t
+AND = \p. \q. p q FALSE
+OR = \p. \q. p TRUE q
+
+# 4. 測試布林運算與邏輯化簡過程
+NOT TRUE
+NOT FALSE
+AND TRUE FALSE
+AND TRUE TRUE
+OR FALSE TRUE
+OR FALSE FALSE
+
+# 5. 巢狀與組合子測試
+(\x. x x) (\y. y)

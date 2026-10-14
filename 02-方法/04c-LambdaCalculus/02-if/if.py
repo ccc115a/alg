@@ -13,5 +13,6 @@ REFUTE = lambda truth:ASSERT(NOT(truth))
 TEST   = lambda description:lambda assertion:print(assertion(description))
 
 TEST('TRUE')(ASSERT(TRUE))
+TEST('FALSE')(ASSERT(FALSE))
 
 TEST('FALSE')(REFUTE(FALSE))
