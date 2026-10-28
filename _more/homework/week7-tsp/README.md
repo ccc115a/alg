@@ -10,6 +10,8 @@
 | 4 | 梯度下降法 | 連續鬆弛 + 最佳化 | `gradient_descent()` |
 | 5 | 貪婪演算法（最近鄰居） | 建構式啟發法 | `greedy()` |
 
+![](./tsp_results.png)
+
 ---
 
 ## 目錄
@@ -194,7 +196,7 @@ for _ in range(iters):                       # iters = 20000
 $$
 P(\text{接受}) =
 \begin{cases}
-1 & \Delta < 0 \quad(\text{變好，一定接受})\\[4pt]
+1 & \Delta < 0 \quad(\text{變好，一定接受})  
 e^{-\Delta / T} & \Delta \ge 0 \quad(\text{變差，依機率接受})
 \end{cases}
 $$
