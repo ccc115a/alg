@@ -270,7 +270,7 @@ $$
 R(P) = \lambda \sum_{i=0}^{n-1}\Big(\sum_{k} P_{k,i} - 1\Big)^2
 $$
 
-總損失：$\;\mathcal{L} = L(P) + R(P)$。
+總損失： $`\;\mathcal{L} = L(P) + R(P)`$。
 
 程式中將 $D$ 除以其平均值（`Dn = DIST / DIST.mean()`），讓 $L$ 與 $R$ 的量級接近，避免梯度爆炸或被懲罰項淹沒。
 
