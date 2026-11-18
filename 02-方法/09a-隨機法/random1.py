@@ -3,6 +3,7 @@ import math
 
 SEED_MAX = 9999997
 seed = time.time()%SEED_MAX
+# seed = 3456789
 
 def random():
     global seed
